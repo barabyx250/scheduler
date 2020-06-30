@@ -1,0 +1,18 @@
+.input {
+    max-width: 25%;
+    min-width: 10%;
+}
+
+.box {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.formWidth {
+    width: 100%;
+    max-width: 400px; 
+    padding: 10px;
+}

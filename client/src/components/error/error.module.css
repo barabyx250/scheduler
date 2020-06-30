@@ -1,0 +1,42 @@
+.error {
+    text-align: left;
+    width: 100%;
+    max-width: 20%;
+
+    -webkit-animation: pulsing 2s infinite;
+    animation: pulsing 2s infinite;
+}
+
+@keyframes pulsing {
+    0% {
+        -webkit-transform: scale(0.99, 0.99);
+        transform: scale(0.99, 0.99)
+    }
+
+    50% {
+        -webkit-transform: scale(1.0, 1.0);
+        transform: scale(1.0, 1.0);
+    }
+
+    100% {
+        -webkit-transform: scale(0.99, 0.99);
+        transform: scale(0.99, 0.99);
+    }
+}
+
+@-webkit-keyframes pulsing {
+    0% {
+        -webkit-transform: scale(0.99, 0.99);
+        transform: scale(0.99, 0.99)
+    }
+
+    50% {
+        -webkit-transform: scale(1.0, 1.0);
+        transform: scale(1.0, 1.0);
+    }
+
+    100% {
+        -webkit-transform: scale(0.99, 0.99);
+        transform: scale(0.99, 0.99);
+    }
+}
