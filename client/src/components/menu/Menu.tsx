@@ -72,7 +72,41 @@ export class MainMenu extends React.Component {
 							className="site-layout-background"
 							style={{ width: "100%", height: "100%" }}
 						>
-							<Calendar tasks={[]} type={Type.WEEK}></Calendar>
+							<Calendar
+								tasks={[
+									new Task(
+										1,
+										"Content1",
+										new Date("2020-06-29"),
+										new Date("2020-06-30")
+									),
+									new Task(
+										2,
+										"Content2",
+										new Date("2020-06-29"),
+										new Date("2020-06-30")
+									),
+									new Task(
+										22,
+										"Content22",
+										new Date("2020-06-29"),
+										new Date("2020-06-30")
+									),
+									new Task(
+										3,
+										"Content3",
+										new Date("2020-07-01"),
+										new Date("2020-07-01")
+									),
+									new Task(
+										4,
+										"Content4",
+										new Date("2020-07-02"),
+										new Date("2020-07-04")
+									),
+								]}
+								type={Type.WEEK}
+							></Calendar>
 						</div>
 					</Content>
 					<Footer style={{ textAlign: "center" }}>
