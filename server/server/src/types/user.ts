@@ -1,19 +1,22 @@
-
 export class User {
-    id: number;
-    session: string;
-    login: string;
-    password: string;
+	constructor(id: number, session: string, login: string, password: string) {
+		this.id = id;
+		this.session = session;
+		this.login = login;
+		this.password = password;
+	}
 
-    public static EmptyUser(): User {
-        return {
-            id: 0,
-            session: "",
-            login: "",
-            password: ""
-        };
-    }
+	id: number;
+	session: string;
+	login: string;
+	password: string;
+
+	public static EmptyUser(): User {
+		return {
+			id: 0,
+			session: "",
+			login: "",
+			password: "",
+		};
+	}
 }
-
-
-

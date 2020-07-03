@@ -5,115 +5,104 @@ import {
 	FileOutlined,
 	TeamOutlined,
 	UserOutlined,
+	PlusCircleOutlined,
+	GroupOutlined,
 } from "@ant-design/icons";
-import React from "react";
+import React, { useState } from "react";
 import styles from "./menu.module.css";
 import logo from "./logo.png";
 import { UserMenu } from "../user/menu/UserMenu";
 import { Calendar, Type } from "../calendar/Calendar";
 import { Task } from "../../types/task";
+import { NavLink, Switch, Route } from "react-router-dom";
+import { MyTasks } from "../mytask/MyTasks";
+import { CreateTask } from "../task/CreateTask";
+import { ConnectionManager } from "../../managers/connetion/connectionManager";
+import {
+	RequestType,
+	ResponseMessage,
+	ResponseCode,
+} from "../../types/requests";
+import { setTasks } from "../../redux/slicers/taskSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAccount } from "../../redux/slicers/accountSlice";
 
 const { Header, Content, Footer, Sider } = Layout;
-const { SubMenu } = Menu;
 
-export class MainMenu extends React.Component {
-	state = {
+export const MainMenu: React.FC = () => {
+	const dispatch = useDispatch();
+	const accState = useSelector(selectAccount);
+	const [state, setState] = useState({
 		collapsed: false,
-	};
+	});
 
-	onCollapse = (collapsed: any) => {
+	const onCollapse = (collapsed: any) => {
 		console.log(collapsed);
-		this.setState({ collapsed });
+		setState({ collapsed });
 	};
 
-	headerStyle: React.CSSProperties = {
+	const headerStyle: React.CSSProperties = {
 		padding: 0,
 		textAlign: "right",
 	};
 
-	render() {
-		return (
-			<Layout style={{ minHeight: "100vh" }}>
-				<Sider
-					collapsible
-					collapsed={this.state.collapsed}
-					onCollapse={this.onCollapse}
-				>
-					<div className={styles.logoBox}>
-						<div id="textLogoBox">
-							{!this.state.collapsed ? "ZSU Roadmap" : "ZSU RM"}
-						</div>
+	const onMyTaskClick = () => {};
+
+	return (
+		<Layout style={{ minHeight: "100vh" }}>
+			<Sider collapsed={state.collapsed} onCollapse={onCollapse}>
+				<div className={styles.logoBox}>
+					<div id="textLogoBox">
+						{!state.collapsed ? "ZSU Roadmap" : "ZSU RM"}
 					</div>
-					<Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
-						<Menu.Item key="1" icon={<PieChartOutlined />}>
-							Мої задачі
+				</div>
+				<Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
+					<Menu.Item
+						key="1"
+						icon={<PieChartOutlined />}
+						onClick={onMyTaskClick}
+					>
+						<NavLink to="/menu/mytasks">Мої задачі</NavLink>
+					</Menu.Item>
+					<Menu.Item key="6" icon={<PlusCircleOutlined />}>
+						<NavLink to="/menu/createtask">Створити задачу</NavLink>
+					</Menu.Item>
+					<Menu.Item key="8" icon={<GroupOutlined />}>
+						Задачі підлеглих
+					</Menu.Item>
+				</Menu>
+			</Sider>
+			<Layout className="site-layout">
+				<Header className="site-layout-background" style={{ padding: 0 }}>
+					<Menu
+						theme="dark"
+						mode="horizontal"
+						defaultSelectedKeys={["1"]}
+						style={headerStyle}
+					>
+						<Menu.Item key="1">
+							<UserMenu></UserMenu>
 						</Menu.Item>
-						<SubMenu key="sub2" icon={<TeamOutlined />} title="Team">
-							<Menu.Item key="6">Team 1</Menu.Item>
-							<Menu.Item key="8">Team 2</Menu.Item>
-						</SubMenu>
 					</Menu>
-				</Sider>
-				<Layout className="site-layout">
-					<Header className="site-layout-background" style={{ padding: 0 }}>
-						<Menu
-							theme="dark"
-							mode="horizontal"
-							defaultSelectedKeys={["1"]}
-							style={this.headerStyle}
-						>
-							<Menu.Item key="1">
-								<UserMenu></UserMenu>
-							</Menu.Item>
-						</Menu>
-					</Header>
-					<Content style={{ margin: "0 16px" }}>
-						<div
-							className="site-layout-background"
-							style={{ width: "100%", height: "100%" }}
-						>
-							<Calendar
-								tasks={[
-									new Task(
-										1,
-										"Content1",
-										new Date("2020-06-29"),
-										new Date("2020-06-30")
-									),
-									new Task(
-										2,
-										"Content2",
-										new Date("2020-06-29"),
-										new Date("2020-06-30")
-									),
-									new Task(
-										22,
-										"Content22",
-										new Date("2020-06-29"),
-										new Date("2020-06-30")
-									),
-									new Task(
-										3,
-										"Content3",
-										new Date("2020-07-01"),
-										new Date("2020-07-01")
-									),
-									new Task(
-										4,
-										"Content4",
-										new Date("2020-07-02"),
-										new Date("2020-07-04")
-									),
-								]}
-								type={Type.WEEK}
-							></Calendar>
-						</div>
-					</Content>
-					<Footer style={{ textAlign: "center" }}>
-						ZSU Roadmap ©2020 Created by BIUS
-					</Footer>
-				</Layout>
+				</Header>
+				<Content style={{ margin: "0 16px" }}>
+					<div
+						className="site-layout-background"
+						style={{ width: "100%", height: "100%" }}
+					>
+						<Switch>
+							<Route path="/menu/mytasks" component={MyTasks}></Route>
+							<Route path="/user"></Route>
+							<Route path="/menu/createtask">
+								<CreateTask />
+							</Route>
+						</Switch>
+					</div>
+				</Content>
+				<Footer style={{ textAlign: "center" }}>
+					ZSU Roadmap ©2020 Created by BIUS
+				</Footer>
 			</Layout>
-		);
-	}
-}
+		</Layout>
+	);
+};

@@ -2,31 +2,33 @@ import React, { useState } from "react";
 import { Button, Form, Input } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import logo from "./title.png";
-import {
-	ConnectionManager,
-	RequestType,
-} from "../../managers/connetion/connectionManager";
+import { ConnectionManager } from "../../managers/connetion/connectionManager";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAccount, setUserData } from "../../redux/slicers/accountSlice";
 import { useHistory } from "react-router-dom";
 import styles from "./login.module.css";
 import { User } from "../../types/user";
-import { RequestMessage, RequestCode } from "../../types/requests";
+import {
+	ResponseMessage,
+	ResponseCode,
+	RequestType,
+} from "../../types/requests";
 import { ErrorBox } from "../error/Error";
 
 export function Login() {
 	const dispatch = useDispatch();
 	const [error, setErrorData] = useState("");
 	const history = useHistory();
+	const accState = useSelector(selectAccount);
 
 	const onFinish = (data: any) => {
 		//{username: "уававыа", password: "ыаывыаыва"}
 		ConnectionManager.getInstance().registerResponseHandler(
 			RequestType.LOGIN,
 			(data) => {
-				const dataMessage = data as RequestMessage<User>;
+				const dataMessage = data as ResponseMessage<User>;
 				if (
-					dataMessage.requestCode == RequestCode.RES_CODE_INTERNAL_ERROR ||
+					dataMessage.requestCode == ResponseCode.RES_CODE_INTERNAL_ERROR ||
 					dataMessage.data.id === 0
 				) {
 					console.log(`Error: ${dataMessage.requestCode}`);
@@ -38,14 +40,19 @@ export function Login() {
 					setUserData({
 						id: dataMessage.data.id,
 						login: dataMessage.data.login,
-						sessionId: dataMessage.data.session,
+						session: dataMessage.data.session,
 					})
 				);
 				localStorage.setItem("user", JSON.stringify(dataMessage.data));
-				history.push("/");
+				//history.push("/main");
+				window.location.reload();
 			}
 		);
-		ConnectionManager.getInstance().emit(RequestType.LOGIN, data);
+		ConnectionManager.getInstance().emit(
+			RequestType.LOGIN,
+			data,
+			accState.session
+		);
 	};
 
 	return (

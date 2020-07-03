@@ -2,10 +2,16 @@ import { Alert, Menu, Dropdown, Button } from "antd";
 import React from "react";
 import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import styles from "./userMenu.module.css";
+import { ACCOUNT_STORAGE_KEY } from "../../../types/constants";
 
 export class UserMenu extends React.Component<{
 	name?: string;
 }> {
+	onQuitClick() {
+		localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+		window.location.reload();
+	}
+
 	render() {
 		return (
 			<Dropdown
@@ -14,7 +20,9 @@ export class UserMenu extends React.Component<{
 						<Menu>
 							<Menu.Item>2nd menu item</Menu.Item>
 							<Menu.Item>3rd menu item</Menu.Item>
-							<Menu.Item danger>Вийти</Menu.Item>
+							<Menu.Item danger onClick={this.onQuitClick}>
+								Вийти
+							</Menu.Item>
 						</Menu>
 					</div>
 				}
