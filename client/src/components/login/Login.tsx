@@ -5,7 +5,6 @@ import logo from "./title.png";
 import { ConnectionManager } from "../../managers/connetion/connectionManager";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAccount, setUserData } from "../../redux/slicers/accountSlice";
-import { useHistory } from "react-router-dom";
 import styles from "./login.module.css";
 import { User } from "../../types/user";
 import {
@@ -18,17 +17,16 @@ import { ErrorBox } from "../error/Error";
 export function Login() {
 	const dispatch = useDispatch();
 	const [error, setErrorData] = useState("");
-	const history = useHistory();
 	const accState = useSelector(selectAccount);
 
 	const onFinish = (data: any) => {
 		//{username: "уававыа", password: "ыаывыаыва"}
-		ConnectionManager.getInstance().registerResponseHandler(
+		ConnectionManager.getInstance().registerResponseOnceHandler(
 			RequestType.LOGIN,
 			(data) => {
 				const dataMessage = data as ResponseMessage<User>;
 				if (
-					dataMessage.requestCode == ResponseCode.RES_CODE_INTERNAL_ERROR ||
+					dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR ||
 					dataMessage.data.id === 0
 				) {
 					console.log(`Error: ${dataMessage.requestCode}`);

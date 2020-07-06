@@ -7,11 +7,13 @@ import {
 import { UserModel } from "./model/user.model";
 import { TaskModel } from "./model/task.model";
 import { Task } from "./types/task";
+import { logDev } from "./logger/config";
+import { User } from "./types/user";
 
 export class RequestManager {
 	public static on(socket: any, io: SocketIO.Server) {
 		socket.on(RequestType.LOGIN, async (m: any) => {
-			console.log("[server](message): %s", JSON.stringify(m));
+			logDev.info("REQUEST: " + JSON.stringify(m));
 
 			const request = m as RequestMessage<any>;
 			const response = await UserModel.userLogin(
@@ -23,7 +25,7 @@ export class RequestManager {
 		});
 
 		socket.on(RequestType.CREATE_TASK, async (m: any) => {
-			console.log("[server](message): %s", JSON.stringify(m));
+			logDev.info("REQUEST: " + JSON.stringify(m));
 
 			const response = await TaskModel.createTask(m);
 
@@ -31,7 +33,7 @@ export class RequestManager {
 		});
 
 		socket.on(RequestType.GET_MY_TASKS, async (m: any) => {
-			console.log("[server](message): %s", JSON.stringify(m));
+			logDev.info("REQUEST: " + JSON.stringify(m));
 
 			if ((m as RequestMessage<any>).session === "") {
 				socket.emit(RequestType.GET_MY_TASKS, {
@@ -44,6 +46,24 @@ export class RequestManager {
 
 			const response = await TaskModel.getTasksByExecuter(m);
 			socket.emit(RequestType.GET_MY_TASKS, response);
+		});
+
+		socket.on(RequestType.GET_USERS_INFO, async (m: any) => {
+			logDev.info(
+				`REQUEST: ${RequestType.GET_USERS_INFO} : ${JSON.stringify(m)}`
+			);
+
+			if ((m as RequestMessage<Array<number>>).session === "") {
+				socket.emit(RequestType.GET_USERS_INFO, {
+					data: [],
+					messageInfo: "Session is invalid",
+					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+				} as ResponseMessage<Task[]>);
+				return;
+			}
+
+			const response = await UserModel.getUsersByIds(m);
+			socket.emit(RequestType.GET_USERS_INFO, response);
 		});
 
 		socket.on("disconnect", () => {

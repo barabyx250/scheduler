@@ -1,12 +1,12 @@
 import React from "react";
-import "./calendar.style.css";
 import { Task, TaskPriority } from "../../../types/task";
 import { Typography } from "antd";
-import { addDays } from "date-fns/fp";
 import Timeline, {
 	TimelineHeaders,
 	DateHeader,
 	SidebarHeader,
+	TodayMarker,
+	CustomMarker,
 } from "react-calendar-timeline";
 import "react-calendar-timeline/lib/Timeline.css";
 import { ConnectionManager } from "../../../managers/connetion/connectionManager";
@@ -17,7 +17,8 @@ import {
 } from "../../../types/requests";
 import Store from "../../../app/store";
 import { User } from "../../../types/user";
-import { TaskDrawerProps, TaskDrawer } from "../../task/TaskDrawer";
+import { addMonths, addDays } from "date-fns";
+import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
 
 const { Text } = Typography;
 
@@ -34,7 +35,7 @@ interface TimeLineItem {
 	itemProps?: any;
 }
 
-export class CalendarWeek extends React.Component<
+export class CalendarViewHalfYear extends React.Component<
 	{
 		tasks: Array<Task>;
 	},
@@ -52,10 +53,12 @@ export class CalendarWeek extends React.Component<
 			},
 		});
 	}
-	startOfWeek(date: Date) {
-		var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
+	getStartEndHalfOfYear(): Date[] {
+		const date = new Date();
+		date.setDate(1);
+		date.setHours(0);
 
-		return new Date(date.setDate(diff));
+		return [addMonths(date, -3), addMonths(date, 3)];
 	}
 	ifTaskInDate(date: Date, task: Task): boolean {
 		const one = date <= task.endDate;
@@ -64,16 +67,6 @@ export class CalendarWeek extends React.Component<
 		return result;
 	}
 
-	ifTaskBetweenDates(start: Date, end: Date, task: Task) {
-		const oneStart = new Date(task.startDate) <= end;
-		const twoStart = new Date(task.startDate) >= start;
-
-		const oneEnd = new Date(task.endDate) <= end;
-		const twoEnd = new Date(task.endDate) >= start;
-
-		const result: boolean = (oneStart && twoStart) || (oneEnd && twoEnd);
-		return result;
-	}
 	getCurrDateDays() {
 		const currDate = new Date();
 
@@ -82,30 +75,6 @@ export class CalendarWeek extends React.Component<
 			currDate.getMonth(),
 			currDate.getDate()
 		);
-	}
-
-	formatDateHeaderByDateString(date: string | undefined) {
-		var days = [
-			"Неділя",
-			"Понеділок",
-			"Вівторок",
-			"Середа",
-			"Четвер",
-			"П'ятниця",
-			"Субота",
-		];
-
-		if (date !== undefined) {
-			const dateObject = new Date(date);
-			const day: string =
-				dateObject.getDate() < 10
-					? "0" + dateObject.getDate().toString()
-					: dateObject.getDate().toString();
-
-			return `${day}, ${days[dateObject.getDay()]}`;
-		}
-
-		return "";
 	}
 
 	formatDate(dateObject: Date) {
@@ -120,6 +89,14 @@ export class CalendarWeek extends React.Component<
 
 		const lDate = new Date(`${month}.${day}.${year}`);
 		return lDate;
+	}
+
+	getNameOfMonth(dateStr: string | undefined) {
+		if (dateStr !== undefined) {
+			const date = new Date(dateStr);
+			return date.toLocaleString("uk", { month: "long" });
+		}
+		return "undefined";
 	}
 
 	onItemClicked(item: TimeLineItem) {
@@ -143,7 +120,7 @@ export class CalendarWeek extends React.Component<
 					executer = dataMessage.data[1];
 					author = dataMessage.data[0];
 				}
-				console.log(executer, author);
+
 				this.setState({
 					taskDrawer: {
 						...this.state.taskDrawer,
@@ -178,41 +155,70 @@ export class CalendarWeek extends React.Component<
 		});
 	}
 
-	render() {
-		const currDate = this.getCurrDateDays();
-		const start = this.startOfWeek(currDate);
+	generateCustomsMarkers(start: Date, end: Date) {
+		let markers: JSX.Element[] = [];
+		let currDate: Date = new Date(start);
+		markers.push(
+			<CustomMarker date={currDate}>
+				{({ styles, date }) => {
+					styles.backgroundColor = "#BBBBBB";
+					return <div style={styles} />;
+				}}
+			</CustomMarker>
+		);
+		while (currDate < end) {
+			currDate = addDays(currDate, 1);
 
-		const items: TimeLineItem[] = this.props.tasks
-			.filter((item) => {
-				return this.ifTaskBetweenDates(start, addDays(7, start), item);
-			})
-			.map((task) => {
-				const item: TimeLineItem = {
-					id: task.id,
-					group: task.id,
-					title: task.title,
-					start_time: this.formatDate(new Date(task.startDate)),
-					end_time: this.formatDate(new Date(task.endDate)),
-					canMove: true,
-					canResize: false,
-					canChangeGroup: false,
-					data: {
-						...task,
-					},
-				};
-				const backgroundColor =
-					task.priority === TaskPriority.RED
-						? "#ff4d4f"
-						: task.priority === TaskPriority.YELLOW
-						? "#ffec3d"
-						: "#52c41a";
-				item.itemProps = {
-					style: { backgroundColor: backgroundColor, borderRadius: "50px" },
-					onMouseDown: this.onItemClicked.bind(this, item),
-				};
-				return item;
-			});
-		console.log(items);
+			let bgColor = "#bfbfbf";
+			let width = "1px";
+			if (currDate.getDate() === 1) {
+				bgColor = "#1f1f1f";
+				width = "2px";
+			}
+
+			markers.push(
+				<CustomMarker date={currDate}>
+					{({ styles, date }) => {
+						styles.backgroundColor = bgColor;
+						styles.width = width;
+						return <div style={styles}></div>;
+					}}
+				</CustomMarker>
+			);
+		}
+		return markers;
+	}
+
+	render() {
+		const [start, end] = this.getStartEndHalfOfYear();
+		console.log("Months: ", start, end);
+
+		const items: TimeLineItem[] = this.props.tasks.map((task) => {
+			const item: TimeLineItem = {
+				id: task.id,
+				group: task.id,
+				title: task.title,
+				start_time: this.formatDate(new Date(task.startDate)),
+				end_time: this.formatDate(new Date(task.endDate)),
+				canMove: true,
+				canResize: false,
+				canChangeGroup: false,
+				data: {
+					...task,
+				},
+			};
+			const backgroundColor =
+				task.priority === TaskPriority.RED
+					? "#ff4d4f"
+					: task.priority === TaskPriority.YELLOW
+					? "#ffec3d"
+					: "#52c41a";
+			item.itemProps = {
+				style: { backgroundColor: backgroundColor, borderRadius: "50px" },
+				onMouseDown: this.onItemClicked.bind(this, item),
+			};
+			return item;
+		});
 
 		const groups = items.map((task) => {
 			return { id: task.id, title: task.title };
@@ -221,44 +227,29 @@ export class CalendarWeek extends React.Component<
 		return (
 			<div>
 				<Text strong>
-					{start
-						.toLocaleString("uk", { month: "long", year: "numeric" })
-						.toUpperCase()}
+					{start.toLocaleString("uk", { year: "numeric" }).toUpperCase()}
 				</Text>
 				<Timeline
 					groups={groups}
 					items={items}
-					minZoom={86400000}
+					// minZoom={604800}
+					// maxZoom={604800 * 4}
 					canMove={false}
 					visibleTimeStart={start}
-					visibleTimeEnd={addDays(7, start)}
+					visibleTimeEnd={end}
+					// defaultTimeStart={start}
+					// defaultTimeEnd={end}
 					itemRenderer={({
 						item,
 						itemContext,
 						getItemProps,
 						getResizeProps,
 					}) => {
-						const {
-							left: leftResizeProps,
-							right: rightResizeProps,
-						} = getResizeProps();
+						const { left: leftResizeProps } = getResizeProps();
 						return (
 							<div {...getItemProps(item.itemProps)}>
 								{itemContext.useResizeHandle ? (
 									<div {...leftResizeProps} />
-								) : (
-									""
-								)}
-
-								<div
-									className="rct-item-content"
-									style={{ maxHeight: `${itemContext.dimensions.height}` }}
-								>
-									{itemContext.title}
-								</div>
-
-								{itemContext.useResizeHandle ? (
-									<div {...rightResizeProps} />
 								) : (
 									""
 								)}
@@ -292,7 +283,7 @@ export class CalendarWeek extends React.Component<
 							}}
 						</SidebarHeader>
 						<DateHeader
-							labelFormat="MM.DD.YY"
+							labelFormat="MM"
 							style={{
 								height: 50,
 								fontSize: 15,
@@ -302,14 +293,21 @@ export class CalendarWeek extends React.Component<
 							intervalRenderer={(dateHeaderProps) => {
 								return (
 									<div {...dateHeaderProps?.getIntervalProps()}>
-										{this.formatDateHeaderByDateString(
+										{this.getNameOfMonth(
 											dateHeaderProps?.intervalContext.intervalText
-										)}
+										).toUpperCase()}
 									</div>
 								);
 							}}
 						/>
 					</TimelineHeaders>
+					<TodayMarker interval={2000} date={new Date()}>
+						{({ styles, date }) => {
+							styles.backgroundColor = "#722ed1";
+							return <div style={styles}></div>;
+						}}
+					</TodayMarker>
+					{this.generateCustomsMarkers(start, end)}
 				</Timeline>
 				<TaskDrawer {...this.state?.taskDrawer}></TaskDrawer>
 			</div>

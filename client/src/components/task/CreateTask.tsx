@@ -5,11 +5,7 @@ import {
 	Button,
 	Radio,
 	Select,
-	Cascader,
 	DatePicker,
-	InputNumber,
-	TreeSelect,
-	Switch,
 	ConfigProvider,
 	Modal,
 	Result,
@@ -17,7 +13,6 @@ import {
 import { Store } from "antd/lib/form/interface";
 import FormLocale from "antd/es/locale/uk_UA";
 import DatePickerLocal from "antd/es/date-picker/locale/uk_UA";
-import { Moment } from "moment";
 import * as moment from "moment";
 import "moment/locale/uk";
 import { Task, TaskPriority, TaskPeriod } from "../../types/task";
@@ -28,7 +23,7 @@ import {
 	RequestType,
 } from "../../types/requests";
 import { useSelector } from "react-redux";
-import { selectAccount, initialState } from "../../redux/slicers/accountSlice";
+import { selectAccount } from "../../redux/slicers/accountSlice";
 import { addDays } from "date-fns";
 
 const { TextArea } = Input;
@@ -74,12 +69,12 @@ export const CreateTask: React.FC<Props> = () => {
 	//////CALLBACKS
 	const onFinish = (data: Store) => {
 		console.log(data);
-		ConnectionManager.getInstance().registerResponseHandler(
+		ConnectionManager.getInstance().registerResponseOnceHandler(
 			RequestType.CREATE_TASK,
 			(data) => {
 				console.log(data);
 				const dataMessage = data as ResponseMessage<Task>;
-				if (dataMessage.requestCode == ResponseCode.RES_CODE_INTERNAL_ERROR) {
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
 					console.log(`Error: ${dataMessage.requestCode}`);
 					return;
 				}
@@ -111,7 +106,7 @@ export const CreateTask: React.FC<Props> = () => {
 		);
 	};
 
-	const handleModalOk = (e: any) => {
+	const handleModalOk = () => {
 		setModalState({ visible: false, content: "", title: "" });
 	};
 

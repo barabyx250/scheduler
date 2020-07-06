@@ -6,6 +6,7 @@ import {
 } from "../types/requests";
 import { DBTaskManager } from "../managers/db_task_manager";
 import { DBUserManager } from "../managers/db_user_manager";
+import { User } from "../types/user";
 
 export class TaskModel {
 	public static async createTask(

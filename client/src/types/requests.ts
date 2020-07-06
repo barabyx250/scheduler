@@ -3,6 +3,7 @@ export enum RequestType {
 	LOGIN = "login",
 	CREATE_TASK = "create_task",
 	GET_MY_TASKS = "get_my_tasks",
+	GET_USERS_INFO = "get_users_info",
 }
 
 export enum ResponseCode {

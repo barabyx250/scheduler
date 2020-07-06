@@ -3,12 +3,14 @@ import React from "react";
 import { DownOutlined, UserOutlined } from "@ant-design/icons";
 import styles from "./userMenu.module.css";
 import { ACCOUNT_STORAGE_KEY } from "../../../types/constants";
+import { TimersManager } from "../../../managers/timersManager";
 
 export class UserMenu extends React.Component<{
 	name?: string;
 }> {
 	onQuitClick() {
 		localStorage.removeItem(ACCOUNT_STORAGE_KEY);
+		TimersManager.getInstance().clearAllCallback();
 		window.location.reload();
 	}
 

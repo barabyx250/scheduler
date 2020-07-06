@@ -29,6 +29,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.5.5",
     "socket.io": "^2.3.0",
-    "typeorm": "0.2.25"
+    "typeorm": "0.2.25",
+    "typescript-logging": "^0.6.4"
   }
 }

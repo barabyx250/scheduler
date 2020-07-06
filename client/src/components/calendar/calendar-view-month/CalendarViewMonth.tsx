@@ -1,8 +1,6 @@
 import React from "react";
-import "./calendar.style.css";
 import { Task, TaskPriority } from "../../../types/task";
 import { Typography } from "antd";
-import { addDays } from "date-fns/fp";
 import Timeline, {
 	TimelineHeaders,
 	DateHeader,
@@ -17,7 +15,7 @@ import {
 } from "../../../types/requests";
 import Store from "../../../app/store";
 import { User } from "../../../types/user";
-import { TaskDrawerProps, TaskDrawer } from "../../task/TaskDrawer";
+import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
 
 const { Text } = Typography;
 
@@ -34,7 +32,7 @@ interface TimeLineItem {
 	itemProps?: any;
 }
 
-export class CalendarWeek extends React.Component<
+export class CalendarViewMonth extends React.Component<
 	{
 		tasks: Array<Task>;
 	},
@@ -52,10 +50,14 @@ export class CalendarWeek extends React.Component<
 			},
 		});
 	}
-	startOfWeek(date: Date) {
-		var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
+	getStartEndOfMonth(): Date[] {
+		var date = new Date(),
+			y = date.getFullYear(),
+			m = date.getMonth();
+		var firstDay = new Date(y, m, 1);
+		var lastDay = new Date(y, m + 1, 1);
 
-		return new Date(date.setDate(diff));
+		return [firstDay, lastDay];
 	}
 	ifTaskInDate(date: Date, task: Task): boolean {
 		const one = date <= task.endDate;
@@ -73,39 +75,6 @@ export class CalendarWeek extends React.Component<
 
 		const result: boolean = (oneStart && twoStart) || (oneEnd && twoEnd);
 		return result;
-	}
-	getCurrDateDays() {
-		const currDate = new Date();
-
-		return new Date(
-			currDate.getFullYear(),
-			currDate.getMonth(),
-			currDate.getDate()
-		);
-	}
-
-	formatDateHeaderByDateString(date: string | undefined) {
-		var days = [
-			"Неділя",
-			"Понеділок",
-			"Вівторок",
-			"Середа",
-			"Четвер",
-			"П'ятниця",
-			"Субота",
-		];
-
-		if (date !== undefined) {
-			const dateObject = new Date(date);
-			const day: string =
-				dateObject.getDate() < 10
-					? "0" + dateObject.getDate().toString()
-					: dateObject.getDate().toString();
-
-			return `${day}, ${days[dateObject.getDay()]}`;
-		}
-
-		return "";
 	}
 
 	formatDate(dateObject: Date) {
@@ -143,7 +112,8 @@ export class CalendarWeek extends React.Component<
 					executer = dataMessage.data[1];
 					author = dataMessage.data[0];
 				}
-				console.log(executer, author);
+				console.log("Recive users: ", executer, author);
+
 				this.setState({
 					taskDrawer: {
 						...this.state.taskDrawer,
@@ -179,12 +149,11 @@ export class CalendarWeek extends React.Component<
 	}
 
 	render() {
-		const currDate = this.getCurrDateDays();
-		const start = this.startOfWeek(currDate);
+		const [start, end] = this.getStartEndOfMonth();
 
 		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
-				return this.ifTaskBetweenDates(start, addDays(7, start), item);
+				return this.ifTaskBetweenDates(start, end, item);
 			})
 			.map((task) => {
 				const item: TimeLineItem = {
@@ -231,7 +200,7 @@ export class CalendarWeek extends React.Component<
 					minZoom={86400000}
 					canMove={false}
 					visibleTimeStart={start}
-					visibleTimeEnd={addDays(7, start)}
+					visibleTimeEnd={end}
 					itemRenderer={({
 						item,
 						itemContext,
@@ -292,7 +261,7 @@ export class CalendarWeek extends React.Component<
 							}}
 						</SidebarHeader>
 						<DateHeader
-							labelFormat="MM.DD.YY"
+							labelFormat="DD"
 							style={{
 								height: 50,
 								fontSize: 15,
@@ -302,9 +271,7 @@ export class CalendarWeek extends React.Component<
 							intervalRenderer={(dateHeaderProps) => {
 								return (
 									<div {...dateHeaderProps?.getIntervalProps()}>
-										{this.formatDateHeaderByDateString(
-											dateHeaderProps?.intervalContext.intervalText
-										)}
+										{dateHeaderProps?.intervalContext.intervalText}
 									</div>
 								);
 							}}

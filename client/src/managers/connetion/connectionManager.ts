@@ -30,6 +30,12 @@ export class ConnectionManager {
 		this.m_socket.emit(requestType, request);
 	}
 
+	public registerResponseOnceHandler(
+		requestType: RequestType,
+		functionHandler: (data: any) => void
+	) {
+		this.m_socket.once(requestType, functionHandler);
+	}
 	public registerResponseHandler(
 		requestType: RequestType,
 		functionHandler: (data: any) => void
