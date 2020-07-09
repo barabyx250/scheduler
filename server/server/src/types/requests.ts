@@ -4,6 +4,9 @@ export enum RequestType {
 	CREATE_TASK = "create_task",
 	GET_MY_TASKS = "get_my_tasks",
 	GET_USERS_INFO = "get_users_info",
+	GET_USER_POSITIONS = "get_user_positions",
+	CREATE_USER = "create_user",
+	GET_MY_SUBORDINATE = "get_my_subordinate",
 }
 
 export enum ResponseCode {

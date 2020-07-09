@@ -1,7 +1,6 @@
-import { Alert, Menu, Dropdown, Button } from "antd";
+import { Menu, Dropdown } from "antd";
 import React from "react";
-import { DownOutlined, UserOutlined } from "@ant-design/icons";
-import styles from "./userMenu.module.css";
+import { UserOutlined } from "@ant-design/icons";
 import { ACCOUNT_STORAGE_KEY } from "../../../types/constants";
 import { TimersManager } from "../../../managers/timersManager";
 
@@ -15,13 +14,13 @@ export class UserMenu extends React.Component<{
 	}
 
 	render() {
+		console.log("User name: ", this.props.name);
 		return (
 			<Dropdown
 				overlay={
 					<div>
 						<Menu>
-							<Menu.Item>2nd menu item</Menu.Item>
-							<Menu.Item>3rd menu item</Menu.Item>
+							<Menu.Item>Мої налаштування</Menu.Item>
 							<Menu.Item danger onClick={this.onQuitClick}>
 								Вийти
 							</Menu.Item>
@@ -33,7 +32,7 @@ export class UserMenu extends React.Component<{
 				<div>
 					{this.props.name === "" || this.props.name === undefined
 						? "USER"
-						: this.props.name.toUpperCase}{" "}
+						: this.props.name.toUpperCase()}{" "}
 					<UserOutlined />
 				</div>
 			</Dropdown>

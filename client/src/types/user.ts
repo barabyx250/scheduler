@@ -1,22 +1,28 @@
+import { UserPosition } from "./userPosition";
+
+export enum UserRole {
+	USER,
+	ADMIN,
+}
+
 export class User {
-  constructor(id: number, session: string, login: string, password: string) {
-    this.id = id;
-    this.session = session;
-    this.login = login;
-    this.password = password;
-  }
+	constructor(
+		public id: number = 0,
+		public session: string = "",
+		public login: string = "",
+		public password: string = "",
+		public firstName: string = "",
+		public secondName: string = "",
+		public middleName: string = "",
+		public role: UserRole = UserRole.USER,
+		public position: UserPosition = {
+			name: "",
+			parent_id: 0,
+			pos_id: 0,
+		}
+	) {}
 
-  id: number;
-  session: string;
-  login: string;
-  password: string;
-
-  public static EmptyUser(): User {
-    return {
-      id: 0,
-      session: "",
-      login: "",
-      password: "",
-    };
-  }
+	public static EmptyUser(): User {
+		return new User();
+	}
 }

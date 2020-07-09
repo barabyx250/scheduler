@@ -13,6 +13,8 @@ import { selectAccount } from "../../redux/slicers/accountSlice";
 import { Empty, Radio } from "antd";
 import { TimersManager } from "../../managers/timersManager";
 import { RadioChangeEvent } from "antd/lib/radio";
+import { CALLBACK_UPDATE_MY_TASK } from "../../types/constants";
+import { User } from "../../types/user";
 
 export const MyTasks: React.FC = () => {
 	const dispatch = useDispatch();
@@ -32,13 +34,40 @@ export const MyTasks: React.FC = () => {
 				dispatch(setTasks(dataMessage.data));
 			}
 		);
-		TimersManager.getInstance().subscribeCallback("TaskUpdaer", 3000, () => {
-			ConnectionManager.getInstance().emit(
-				RequestType.GET_MY_TASKS,
-				{},
-				accState.session
-			);
-		});
+		TimersManager.getInstance().subscribeCallback(
+			CALLBACK_UPDATE_MY_TASK,
+			3000,
+			() => {
+				ConnectionManager.getInstance().emit(
+					RequestType.GET_MY_TASKS,
+					{},
+					accState.session
+				);
+			}
+		);
+
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.GET_MY_SUBORDINATE,
+			(data) => {
+				const dataMessage = data as ResponseMessage<Array<User>>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+				console.log(data);
+				// dispatch(setTasks(dataMessage.data));
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.GET_MY_SUBORDINATE,
+			{},
+			accState.session
+		);
+
+		return () => {
+			TimersManager.getInstance().clearCallback(CALLBACK_UPDATE_MY_TASK);
+		};
 	}, []);
 
 	const onRadioChange = (e: RadioChangeEvent) => {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Form,
 	Input,
@@ -25,6 +25,7 @@ import {
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
 import { addDays } from "date-fns";
+import { User } from "../../types/user";
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -46,14 +47,45 @@ export const CreateTask: React.FC<Props> = () => {
 		title: "",
 		content: "",
 	});
+	const [subordinatesState, setSubordinatesState] = useState<User[]>([
+		accState,
+	]);
 	const [form] = Form.useForm();
 
+	useEffect(() => {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.GET_MY_SUBORDINATE,
+			(data) => {
+				const dataMessage = data as ResponseMessage<Array<User>>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+				console.log(RequestType.GET_MY_SUBORDINATE, data);
+				setSubordinatesState(dataMessage.data);
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.GET_MY_SUBORDINATE,
+			{},
+			accState.session
+		);
+	}, []);
 	//////VARIABLES
 	const layout = {
 		labelCol: { span: 8 },
 		wrapperCol: { span: 16 },
 	};
-	const usersExecuters = [{ id: accState.id, name: "Я" }];
+	const usersExecuters = subordinatesState.map((u) => {
+		if (u.id === accState.id) {
+			return { id: accState.id, name: "Я" };
+		}
+		return {
+			id: u.id,
+			name: u.firstName + " " + u.middleName + " " + u.secondName,
+		};
+	}); //[{ id: accState.id, name: "Я" }];
 	const taskPriorities = [
 		{ value: TaskPriority.USUAL, name: "Звичайний" },
 		{ value: TaskPriority.YELLOW, name: "Важливий" },

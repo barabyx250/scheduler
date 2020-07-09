@@ -34,4 +34,10 @@ export class TimersManager {
 		});
 		this.timers = [];
 	}
+
+	public clearCallback(key: string) {
+		this.timers.forEach((item) => {
+			if (item.key === key) clearInterval(item.value);
+		});
+	}
 }

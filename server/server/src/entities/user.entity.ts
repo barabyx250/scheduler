@@ -4,10 +4,12 @@ import {
 	Column,
 	OneToMany,
 	ManyToOne,
+	JoinColumn,
 } from "typeorm";
 import { UserSessionEntity } from "./session.entity";
-import { User } from "../types/user";
+import { User, UserRole } from "../types/user";
 import { TaskEntity } from "./task.entity";
+import { UserPositionEntity } from "./userPosition.entity";
 
 @Entity()
 export class UserEntity {
@@ -19,6 +21,25 @@ export class UserEntity {
 
 	@Column()
 	password: string;
+
+	@Column({ default: "" })
+	firstName: string;
+
+	@Column({ default: "" })
+	middleName: string;
+
+	@Column({ default: "" })
+	secondName: string;
+
+	@Column({
+		type: "enum",
+		enum: UserRole,
+		default: UserRole.USER,
+	})
+	role: UserRole;
+
+	@ManyToOne((type) => UserPositionEntity, (userPos) => userPos.users)
+	position?: UserPositionEntity;
 
 	@Column({ default: () => "CURRENT_TIMESTAMP" })
 	dateCreation?: Date;
@@ -36,8 +57,19 @@ export class UserEntity {
 		return {
 			id: this.id,
 			login: this.login,
-			password: this.password,
+			password: "",
 			session: "",
+			firstName: this.firstName,
+			middleName: this.middleName,
+			role: this.role,
+			secondName: this.secondName,
+			position: this.position
+				? this.position?.ToRequestObject()
+				: {
+						name: "",
+						parent_id: 0,
+						pos_id: 0,
+				  },
 		};
 	}
 }

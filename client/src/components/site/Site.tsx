@@ -1,22 +1,10 @@
-import {
-	Router,
-	Switch,
-	Route,
-	Redirect,
-	useLocation,
-	useHistory,
-} from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import React from "react";
 import { Login } from "../login/Login";
-import {
-	AccountState,
-	setUserData,
-	selectAccount,
-} from "../../redux/slicers/accountSlice";
+import { AccountState, setUserData } from "../../redux/slicers/accountSlice";
 import { MainMenu } from "../menu/Menu";
-import { MyTasks } from "../mytask/MyTasks";
-import { useDispatch } from "react-redux";
 import Store from "./../../app/store";
+import { UserRole } from "../../types/user";
 
 export class Site extends React.Component<{}, AccountState> {
 	constructor(props: any) {
@@ -25,6 +13,16 @@ export class Site extends React.Component<{}, AccountState> {
 			login: "",
 			id: 0,
 			session: "",
+			firstName: "",
+			middleName: "",
+			password: "",
+			role: UserRole.USER,
+			secondName: "",
+			position: {
+				name: "",
+				parent_id: 0,
+				pos_id: 0,
+			},
 		};
 	}
 
@@ -35,7 +33,7 @@ export class Site extends React.Component<{}, AccountState> {
 
 		if (userJsonString !== null) {
 			const userAccount = JSON.parse(userJsonString) as AccountState;
-			if (userAccount.id != 0) {
+			if (userAccount.id !== 0) {
 				console.log("componentWillMount: ", userAccount);
 
 				this.setState(userAccount);
@@ -43,12 +41,27 @@ export class Site extends React.Component<{}, AccountState> {
 			}
 		} else {
 			this.setState({ id: 0, login: "", session: "" });
-			Store.dispatch(setUserData({ session: "", login: "", id: 0 }));
+			Store.dispatch(
+				setUserData({
+					login: "",
+					id: 0,
+					session: "",
+					firstName: "",
+					middleName: "",
+					password: "",
+					role: UserRole.USER,
+					secondName: "",
+					position: {
+						name: "",
+						parent_id: 0,
+						pos_id: 0,
+					},
+				})
+			);
 		}
 	}
 
 	render() {
-		debugger;
 		// let loginPageRedirect = <Redirect to="/main"></Redirect>;
 		// if (this.state.id === 0) {
 		// 	loginPageRedirect = <Redirect to="/login"></Redirect>;

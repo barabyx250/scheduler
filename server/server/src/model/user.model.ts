@@ -8,6 +8,8 @@ import {
 } from "../types/requests";
 import { DBSessionManager } from "../managers/db_session_manager";
 import { logDev } from "../logger/config";
+import { UserPosition, TreeUserPosition } from "../types/userPosition";
+import { USER_POSITIONS } from "../types/constants";
 
 export class UserModel {
 	public static async userLogin(
@@ -62,5 +64,71 @@ export class UserModel {
 			messageInfo: "",
 			requestCode: requestCode,
 		};
+	}
+
+	public static async getUserPositions(
+		request: RequestMessage<Array<any>>
+	): Promise<ResponseMessage<UserPosition[]>> {
+		const users: Array<User> = [];
+		let requestCode = ResponseCode.RES_CODE_SUCCESS;
+
+		const positions = await DBUserManager.GetAllUserPositions();
+
+		return {
+			data: positions.map((i) => i.ToRequestObject()),
+			messageInfo: "SUCCESS",
+			requestCode: requestCode,
+		};
+	}
+
+	public static async createUser(
+		request: RequestMessage<User>
+	): Promise<ResponseMessage<User>> {
+		let requestCode = ResponseCode.RES_CODE_SUCCESS;
+
+		await DBUserManager.CreateUser(request.data);
+		const user = await DBUserManager.GetUser(request.data.login);
+		if (user !== undefined) {
+			return {
+				data: user?.ToRequestObject(),
+				messageInfo: "SUCCESS",
+				requestCode: requestCode,
+			};
+		}
+		requestCode = ResponseCode.RES_CODE_INTERNAL_ERROR;
+		return {
+			data: { ...request.data, id: 0 },
+			messageInfo: "ERROR",
+			requestCode: requestCode,
+		};
+	}
+
+	public static async getSubordinates(user: User): Promise<User[]> {
+		let requestCode = ResponseCode.RES_CODE_SUCCESS;
+		let usersSubordinates: User[] = [];
+
+		const positions = await DBUserManager.GetAllUserPositions();
+		const tup: TreeUserPosition = new TreeUserPosition();
+
+		tup.fillByArray(positions.map((entity) => entity.ToRequestObject()));
+		const subordinates: UserPosition[] | undefined =
+			user.position.pos_id === USER_POSITIONS.COMADER
+				? positions.map((u) => u.ToRequestObject())
+				: tup.positions.get(user.position.pos_id);
+
+		if (subordinates !== undefined) {
+			for (const sub of subordinates) {
+				const users = await DBUserManager.GetUsersByPositionId(sub.pos_id);
+
+				usersSubordinates = usersSubordinates.concat(
+					users.map((i) => i.ToRequestObject())
+				);
+			}
+		}
+
+		requestCode = ResponseCode.RES_CODE_INTERNAL_ERROR;
+		return usersSubordinates.filter((item, index) => {
+			return usersSubordinates.indexOf(item) === index;
+		});
 	}
 }

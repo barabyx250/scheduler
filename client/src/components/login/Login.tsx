@@ -13,9 +13,11 @@ import {
 	RequestType,
 } from "../../types/requests";
 import { ErrorBox } from "../error/Error";
+import { useHistory } from "react-router-dom";
 
 export function Login() {
 	const dispatch = useDispatch();
+	const history = useHistory();
 	const [error, setErrorData] = useState("");
 	const accState = useSelector(selectAccount);
 
@@ -39,10 +41,16 @@ export function Login() {
 						id: dataMessage.data.id,
 						login: dataMessage.data.login,
 						session: dataMessage.data.session,
+						firstName: dataMessage.data.firstName,
+						secondName: dataMessage.data.secondName,
+						middleName: dataMessage.data.middleName,
+						role: dataMessage.data.role,
+						password: "",
+						position: dataMessage.data.position,
 					})
 				);
 				localStorage.setItem("user", JSON.stringify(dataMessage.data));
-				//history.push("/main");
+				history.push("/main");
 				window.location.reload();
 			}
 		);
