@@ -7,6 +7,7 @@ export enum RequestType {
 	GET_USER_POSITIONS = "get_user_positions",
 	CREATE_USER = "create_user",
 	GET_MY_SUBORDINATE = "get_my_subordinate",
+	GET_TASKS_SUBORDINATES = "get_tasks_subordinates",
 }
 
 export enum ResponseCode {

@@ -1,7 +1,7 @@
 import React from "react";
 import "./calendar.style.css";
 import { Task, TaskPriority } from "../../../types/task";
-import { Typography } from "antd";
+import { Typography, Empty } from "antd";
 import { addDays } from "date-fns/fp";
 import Timeline, {
 	TimelineHeaders,
@@ -225,92 +225,96 @@ export class CalendarWeek extends React.Component<
 						.toLocaleString("uk", { month: "long", year: "numeric" })
 						.toUpperCase()}
 				</Text>
-				<Timeline
-					groups={groups}
-					items={items}
-					minZoom={86400000}
-					canMove={false}
-					visibleTimeStart={start}
-					visibleTimeEnd={addDays(7, start)}
-					itemRenderer={({
-						item,
-						itemContext,
-						getItemProps,
-						getResizeProps,
-					}) => {
-						const {
-							left: leftResizeProps,
-							right: rightResizeProps,
-						} = getResizeProps();
-						return (
-							<div {...getItemProps(item.itemProps)}>
-								{itemContext.useResizeHandle ? (
-									<div {...leftResizeProps} />
-								) : (
-									""
-								)}
+				{items.length === 0 ? (
+					<Empty></Empty>
+				) : (
+					<Timeline
+						groups={groups}
+						items={items}
+						minZoom={86400000}
+						canMove={false}
+						visibleTimeStart={start}
+						visibleTimeEnd={addDays(7, start)}
+						itemRenderer={({
+							item,
+							itemContext,
+							getItemProps,
+							getResizeProps,
+						}) => {
+							const {
+								left: leftResizeProps,
+								right: rightResizeProps,
+							} = getResizeProps();
+							return (
+								<div {...getItemProps(item.itemProps)}>
+									{itemContext.useResizeHandle ? (
+										<div {...leftResizeProps} />
+									) : (
+										""
+									)}
 
-								<div
-									className="rct-item-content"
-									style={{ maxHeight: `${itemContext.dimensions.height}` }}
-								>
-									{itemContext.title}
+									<div
+										className="rct-item-content"
+										style={{ maxHeight: `${itemContext.dimensions.height}` }}
+									>
+										{itemContext.title}
+									</div>
+
+									{itemContext.useResizeHandle ? (
+										<div {...rightResizeProps} />
+									) : (
+										""
+									)}
 								</div>
-
-								{itemContext.useResizeHandle ? (
-									<div {...rightResizeProps} />
-								) : (
-									""
-								)}
-							</div>
-						);
-					}}
-					groupRenderer={({ group }) => {
-						return (
-							<div
-								style={{
-									textAlign: "left",
-								}}
-							>
-								<span
+							);
+						}}
+						groupRenderer={({ group }) => {
+							return (
+								<div
 									style={{
-										fontSize: 16,
+										textAlign: "left",
 									}}
 								>
-									{group.title}
-								</span>
-							</div>
-						);
-					}}
-				>
-					<TimelineHeaders className="sticky">
-						<SidebarHeader>
-							{({ getRootProps }) => {
-								const style = getRootProps();
-								style.style.backgroundColor = "#1890FF";
-								return <div {...style}></div>;
-							}}
-						</SidebarHeader>
-						<DateHeader
-							labelFormat="MM.DD.YY"
-							style={{
-								height: 50,
-								fontSize: 15,
-								color: "#DFF0FF",
-								backgroundColor: "#1890FF",
-							}}
-							intervalRenderer={(dateHeaderProps) => {
-								return (
-									<div {...dateHeaderProps?.getIntervalProps()}>
-										{this.formatDateHeaderByDateString(
-											dateHeaderProps?.intervalContext.intervalText
-										)}
-									</div>
-								);
-							}}
-						/>
-					</TimelineHeaders>
-				</Timeline>
+									<span
+										style={{
+											fontSize: 16,
+										}}
+									>
+										{group.title}
+									</span>
+								</div>
+							);
+						}}
+					>
+						<TimelineHeaders className="sticky">
+							<SidebarHeader>
+								{({ getRootProps }) => {
+									const style = getRootProps();
+									style.style.backgroundColor = "#1890FF";
+									return <div {...style}></div>;
+								}}
+							</SidebarHeader>
+							<DateHeader
+								labelFormat="MM.DD.YY"
+								style={{
+									height: 50,
+									fontSize: 15,
+									color: "#DFF0FF",
+									backgroundColor: "#1890FF",
+								}}
+								intervalRenderer={(dateHeaderProps) => {
+									return (
+										<div {...dateHeaderProps?.getIntervalProps()}>
+											{this.formatDateHeaderByDateString(
+												dateHeaderProps?.intervalContext.intervalText
+											)}
+										</div>
+									);
+								}}
+							/>
+						</TimelineHeaders>
+					</Timeline>
+				)}
 				<TaskDrawer {...this.state?.taskDrawer}></TaskDrawer>
 			</div>
 		);

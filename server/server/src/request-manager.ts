@@ -136,6 +136,25 @@ export class RequestManager {
 			} as RequestMessage<User[]>);
 		});
 
+		socket.on(RequestType.GET_TASKS_SUBORDINATES, async (m: any) => {
+			logDev.info(
+				`REQUEST: ${RequestType.GET_TASKS_SUBORDINATES} : ${JSON.stringify(m)}`
+			);
+
+			if ((m as RequestMessage<any>).session === "") {
+				socket.emit(RequestType.GET_TASKS_SUBORDINATES, {
+					data: {},
+					messageInfo: "Session is invalid",
+					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+				} as ResponseMessage<any>);
+				return;
+			}
+
+			const response = await TaskModel.getTasksBySubbordinates(m);
+
+			socket.emit(RequestType.GET_TASKS_SUBORDINATES, response);
+		});
+
 		socket.on("disconnect", () => {
 			console.log("Client disconnected");
 		});

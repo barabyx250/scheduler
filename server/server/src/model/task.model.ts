@@ -7,6 +7,7 @@ import {
 import { DBTaskManager } from "../managers/db_task_manager";
 import { DBUserManager } from "../managers/db_user_manager";
 import { User } from "../types/user";
+import { UserModel } from "./user.model";
 
 export class TaskModel {
 	public static async createTask(
@@ -60,6 +61,39 @@ export class TaskModel {
 			data: [],
 			messageInfo: `Session [${request.session}] incorrect`,
 			requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+		};
+	}
+
+	public static async getTasksBySubbordinates(
+		request: RequestMessage<Array<number>>
+	): Promise<ResponseMessage<Task[]>> {
+		let resTasks: Task[] = [];
+
+		for (const sub_id of request.data) {
+			const executersTasks = await DBTaskManager.GetTasksByExecuterId(sub_id);
+			resTasks = resTasks.concat(
+				executersTasks.map((i) => i.ToRequestObject())
+			);
+		}
+
+		// const user = await DBUserManager.GetUserBySession(request.session);
+
+		// if (user !== undefined) {
+		// 	const executersTasks = await UserModel.getSubordinates(user.ToRequestObject());
+
+		// 	return {
+		// 		data: executersTasks.map((task) => {
+		// 			return task.ToRequestObject();
+		// 		}),
+		// 		messageInfo: "Success",
+		// 		requestCode: ResponseCode.RES_CODE_SUCCESS,
+		// 	};
+		// }
+
+		return {
+			data: resTasks,
+			messageInfo: `SUCCESS`,
+			requestCode: ResponseCode.RES_CODE_SUCCESS,
 		};
 	}
 }

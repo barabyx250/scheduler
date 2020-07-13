@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Task } from "../../types/task";
-import { Type, Calendar } from "../calendar/Calendar";
-import { ConnectionManager } from "../../managers/connetion/connectionManager";
+import { Task } from "../../../types/task";
+import { Type, Calendar } from "../../calendar/Calendar";
+import { ConnectionManager } from "../../../managers/connetion/connectionManager";
 import {
 	RequestType,
 	ResponseMessage,
 	ResponseCode,
-} from "../../types/requests";
+} from "../../../types/requests";
 import { useDispatch, useSelector } from "react-redux";
-import { setTasks, selectMyTask } from "../../redux/slicers/taskSlice";
-import { selectAccount } from "../../redux/slicers/accountSlice";
+import { setTasks, selectMyTask } from "../../../redux/slicers/taskSlice";
+import { selectAccount } from "../../../redux/slicers/accountSlice";
 import { Empty, Radio } from "antd";
-import { TimersManager } from "../../managers/timersManager";
+import { TimersManager } from "../../../managers/timersManager";
 import { RadioChangeEvent } from "antd/lib/radio";
-import { CALLBACK_UPDATE_MY_TASK } from "../../types/constants";
-import { User } from "../../types/user";
+import { CALLBACK_UPDATE_MY_TASK } from "../../../types/constants";
+import { User } from "../../../types/user";
 
 export const MyTasks: React.FC = () => {
 	const dispatch = useDispatch();
@@ -45,26 +45,6 @@ export const MyTasks: React.FC = () => {
 				);
 			}
 		);
-
-		ConnectionManager.getInstance().registerResponseOnceHandler(
-			RequestType.GET_MY_SUBORDINATE,
-			(data) => {
-				const dataMessage = data as ResponseMessage<Array<User>>;
-				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
-					console.log(`Error: ${dataMessage.requestCode}`);
-					return;
-				}
-				console.log(data);
-				// dispatch(setTasks(dataMessage.data));
-			}
-		);
-
-		ConnectionManager.getInstance().emit(
-			RequestType.GET_MY_SUBORDINATE,
-			{},
-			accState.session
-		);
-
 		return () => {
 			TimersManager.getInstance().clearCallback(CALLBACK_UPDATE_MY_TASK);
 		};

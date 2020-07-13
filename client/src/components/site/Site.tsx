@@ -73,14 +73,15 @@ export class Site extends React.Component<{}, AccountState> {
 					{this.state.id === 0 ? (
 						<Login></Login>
 					) : (
-						<Switch>
+						<div>
 							<Route path="/login">
 								<Login></Login>
 							</Route>
 							<Route path={["/main", "/"]}>
 								<MainMenu></MainMenu>
 							</Route>
-						</Switch>
+						</div>
+						// </Switch>
 					)}
 				</header>
 			</div>

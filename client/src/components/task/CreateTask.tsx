@@ -83,9 +83,9 @@ export const CreateTask: React.FC<Props> = () => {
 		}
 		return {
 			id: u.id,
-			name: u.firstName + " " + u.middleName + " " + u.secondName,
+			name: u.secondName + " " + u.middleName + " " + u.firstName,
 		};
-	}); //[{ id: accState.id, name: "Я" }];
+	});
 	const taskPriorities = [
 		{ value: TaskPriority.USUAL, name: "Звичайний" },
 		{ value: TaskPriority.YELLOW, name: "Важливий" },

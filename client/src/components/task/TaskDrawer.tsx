@@ -43,7 +43,10 @@ export class TaskDrawer extends React.Component<TaskDrawerProps> {
 					</Paragraph>
 					<p />
 					<Text strong>Поставив: </Text>{" "}
-					<Text>{this.props?.author?.login}</Text>
+					<Text>{User.GetUserPIB(this.props?.author)}</Text>
+					<p />
+					<Text strong>Виконує: </Text>{" "}
+					<Text>{User.GetUserPIB(this.props?.executer)}</Text>
 					<p />
 					<Text strong>Терміни: </Text>
 					<Text>
