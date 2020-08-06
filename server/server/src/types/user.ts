@@ -24,4 +24,9 @@ export class User {
 	public static EmptyUser(): User {
 		return new User();
 	}
+
+	public static GetUserPIB(u: User | undefined): string {
+		if (u) return u.secondName + " " + u.middleName + " " + u.firstName;
+		else return "";
+	}
 }

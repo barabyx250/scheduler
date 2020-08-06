@@ -1,0 +1,43 @@
+/* .calendar-enter {
+    opacity: 0;
+    transform: scale(1.1);
+}
+
+.calendar-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 100ms, transform 100ms;
+}
+
+.calendar-exit {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.calendar-exit-active {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 100ms, transform 100ms;
+} */
+
+.calendar-enter {
+    opacity: 0;
+}
+
+.calendar-exit {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.calendar-enter-active {
+    opacity: 1;
+}
+
+.calendar-exit-active {
+    opacity: 0;
+}
+
+.calendar-enter-active,
+.calendar-exit-active {
+    transition: opacity 200ms;
+}

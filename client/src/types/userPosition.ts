@@ -7,12 +7,23 @@ export class UserPosition {
 export interface PositionTreeData {
 	title: string;
 	value: string;
+	key: string;
 	children?: Array<PositionTreeData>;
 }
 
 export class TreeUserPosition {
 	public positions: Map<number, UserPosition[]>;
 	public arrPositions: UserPosition[];
+
+	public getLastId() {
+		let max = 0;
+
+		this.arrPositions.forEach((p) => {
+			if (max < p.pos_id) max = p.pos_id;
+		});
+
+		return max;
+	}
 
 	public fillByArray(poss: UserPosition[]) {
 		this.arrPositions = new Array(...poss);
@@ -57,6 +68,7 @@ export class TreeUserPosition {
 					title: i.name,
 					value: i.pos_id.toString(),
 					children: childChilds,
+					key: i.pos_id.toString(),
 				});
 			}
 		});
@@ -66,6 +78,7 @@ export class TreeUserPosition {
 				title: pos.name,
 				value: pos.pos_id.toString(),
 				children: childs.length === 0 ? undefined : childs,
+				key: pos.pos_id.toString(),
 			});
 		return resPositions;
 	}
@@ -81,6 +94,7 @@ export class TreeUserPosition {
 					title: i.name,
 					value: i.pos_id.toString(),
 					children: childChilds,
+					key: i.pos_id.toString(),
 				});
 			}
 		});

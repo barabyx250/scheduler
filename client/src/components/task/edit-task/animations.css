@@ -1,0 +1,24 @@
+.task-enter {
+    opacity: 0;
+    transform: translateX(-100%);
+}
+
+.task-enter-active {
+    opacity: 1;
+    transform: translateX(0%);
+}
+
+.task-exit {
+    opacity: 1;
+    transform: translateX(0%);
+}
+
+.task-exit-active {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.task-enter-active,
+.task-exit-active {
+    transition: opacity 300ms, transform 300ms;
+}

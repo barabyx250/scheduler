@@ -15,7 +15,7 @@ import FormLocale from "antd/es/locale/uk_UA";
 import DatePickerLocal from "antd/es/date-picker/locale/uk_UA";
 import * as moment from "moment";
 import "moment/locale/uk";
-import { Task, TaskPriority, TaskPeriod } from "../../types/task";
+import { Task, TaskPriority, TaskPeriod, TaskStatus } from "../../types/task";
 import { ConnectionManager } from "../../managers/connetion/connectionManager";
 import {
 	ResponseMessage,
@@ -26,6 +26,10 @@ import { useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
 import { addDays } from "date-fns";
 import { User } from "../../types/user";
+import {
+	formatDateForStartDate,
+	formatDateForEndDate,
+} from "../../helpers/taskHelper";
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -127,8 +131,10 @@ export const CreateTask: React.FC<Props> = () => {
 			executerId: data.taskExecutor,
 			period: data.period,
 			priority: data.priority,
-			startDate: data.taskDuration[0].toDate(),
-			endDate: addDays(data.taskDuration[1].toDate(), 1),
+			startDate: formatDateForStartDate(data.taskDuration[0].toDate()),
+			endDate: formatDateForEndDate(data.taskDuration[1].toDate()),
+			status: TaskStatus.IN_PROGRESS,
+			dateComplited: new Date(),
 		};
 
 		ConnectionManager.getInstance().emit(

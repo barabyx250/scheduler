@@ -131,4 +131,18 @@ export class UserModel {
 			return usersSubordinates.indexOf(item) === index;
 		});
 	}
+
+	public static async updateUserPositions(
+		positions: UserPosition[]
+	): Promise<ResponseMessage<any>> {
+		positions.forEach((pos) => {
+			DBUserManager.UpdateUserPosition(pos);
+		});
+
+		return {
+			data: {},
+			messageInfo: "SUCCESS",
+			requestCode: ResponseCode.RES_CODE_SUCCESS,
+		};
+	}
 }

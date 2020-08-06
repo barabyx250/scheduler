@@ -9,7 +9,8 @@ import {
 import { UserSessionEntity } from "./session.entity";
 import { User, UserRole } from "../types/user";
 import { TaskEntity } from "./task.entity";
-import { UserPositionEntity } from "./userPosition.entity";
+import { UserPositionEntity } from "./user.position.entity";
+import { NotificationEntity } from "./notification.entity";
 
 @Entity()
 export class UserEntity {
@@ -52,6 +53,12 @@ export class UserEntity {
 
 	@OneToMany((type) => TaskEntity, (task) => task.userExecuter)
 	myTasks?: TaskEntity[];
+
+	@OneToMany((type) => NotificationEntity, (not) => not.userTo)
+	myNotifications: NotificationEntity[];
+
+	@OneToMany((type) => NotificationEntity, (not) => not.userFrom)
+	notifications: NotificationEntity[];
 
 	public ToRequestObject(): User {
 		return {

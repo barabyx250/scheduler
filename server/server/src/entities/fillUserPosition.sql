@@ -13,5 +13,5 @@ INSERT INTO user_position_entity (id, pos_id, name, "parentId")
 INSERT INTO user_position_entity (id, pos_id, name, "parentId")
     VALUES (4, 4, 'Замісник12', 1);
 
-
+SELECT setval('user_position_entity_id_seq', 5);
     

@@ -1,13 +1,12 @@
 import express from "express";
 import cors from "cors";
 import * as http from "http";
-import { RequestManager } from "./request-manager";
 import { DBManager } from "./managers/db_manager";
-import { DBUserManager } from "./managers/db_user_manager";
-import { TreeUserPosition } from "./types/userPosition";
+import { RequestManager } from "./request-manager";
+import { NotificationModel } from "./model/notification.model";
 
 export class ServerManager {
-	public static readonly PORT: number = 8080;
+	public static readonly PORT: number = 8081;
 	private app: express.Application;
 	private server: http.Server;
 	private io: SocketIO.Server;
@@ -19,7 +18,9 @@ export class ServerManager {
 		this.createServer();
 		this.sockets();
 		this.listen();
-		DBManager.get();
+		DBManager.get().then(() => {
+			NotificationModel.StartTaskProgressNotification(this.io);
+		});
 	}
 
 	private createApp(): void {
@@ -43,7 +44,7 @@ export class ServerManager {
 		this.server.listen(this.port, () => {
 			console.log("Running server on port %s", this.port);
 		});
-		this.io.on("connect", (socket: any) => {
+		this.io.on("connect", (socket: SocketIO.Socket) => {
 			console.log("Connected client on port %s.", this.port);
 			RequestManager.on(socket, this.io);
 		});

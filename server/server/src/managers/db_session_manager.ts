@@ -28,4 +28,15 @@ export class DBSessionManager {
 			});
 		return session;
 	}
+
+	public static async GetSessionsByUserId(
+		userId: number
+	): Promise<UserSessionEntity[]> {
+		const sessionEntity = getRepository(UserSessionEntity)
+			.createQueryBuilder("session")
+			.leftJoinAndSelect("session.user", "user")
+			.where("user.id = :user_id", { user_id: userId })
+			.getMany();
+		return sessionEntity;
+	}
 }

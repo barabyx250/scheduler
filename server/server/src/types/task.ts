@@ -11,6 +11,11 @@ export enum TaskPriority {
 	USUAL = 3,
 }
 
+export enum TaskStatus {
+	IN_PROGRESS,
+	COMPLITED,
+}
+
 export class Task {
 	constructor(
 		public id: number,
@@ -21,6 +26,8 @@ export class Task {
 		public authorId: number,
 		public executerId: number,
 		public period: TaskPeriod,
-		public priority: TaskPriority
+		public priority: TaskPriority,
+		public status: TaskStatus,
+		public dateComplited: Date
 	) {}
 }

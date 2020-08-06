@@ -1,5 +1,5 @@
 import React from "react";
-import { Task, TaskPriority } from "../../../types/task";
+import { Task, TaskPriority, TaskStatus } from "../../../types/task";
 import { Typography, Empty } from "antd";
 import Timeline, {
 	TimelineHeaders,
@@ -16,6 +16,12 @@ import {
 import Store from "../../../app/store";
 import { User } from "../../../types/user";
 import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
+import {
+	formatDateForDisplayTasks,
+	formatDateTaskForDisplay,
+	ifTaskBetweenDates,
+} from "../../../helpers/taskHelper";
+import { Fade } from "react-awesome-reveal";
 
 const { Text } = Typography;
 
@@ -64,31 +70,6 @@ export class CalendarViewMonth extends React.Component<
 		const two = date >= task.startDate;
 		const result: boolean = one && two;
 		return result;
-	}
-
-	ifTaskBetweenDates(start: Date, end: Date, task: Task) {
-		const oneStart = new Date(task.startDate) <= end;
-		const twoStart = new Date(task.startDate) >= start;
-
-		const oneEnd = new Date(task.endDate) <= end;
-		const twoEnd = new Date(task.endDate) >= start;
-
-		const result: boolean = (oneStart && twoStart) || (oneEnd && twoEnd);
-		return result;
-	}
-
-	formatDate(dateObject: Date) {
-		const dayNum = dateObject.getDate();
-		const monthNum = dateObject.getMonth() + 1;
-		const yearNum = dateObject.getFullYear();
-		const day: string =
-			dayNum < 10 ? "0" + dayNum.toString() : dayNum.toString();
-		const month: string =
-			monthNum < 10 ? "0" + monthNum.toString() : monthNum.toString();
-		const year: string = yearNum.toString().substr(0, 2);
-
-		const lDate = new Date(`${month}.${day}.${year}`);
-		return lDate;
 	}
 
 	onItemClicked(item: TimeLineItem) {
@@ -153,15 +134,17 @@ export class CalendarViewMonth extends React.Component<
 
 		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
-				return this.ifTaskBetweenDates(start, end, item);
+				return (
+					item.status !== TaskStatus.COMPLITED &&
+					ifTaskBetweenDates(start, end, item)
+				);
 			})
 			.map((task) => {
 				const item: TimeLineItem = {
 					id: task.id,
 					group: task.id,
 					title: task.title,
-					start_time: this.formatDate(new Date(task.startDate)),
-					end_time: this.formatDate(new Date(task.endDate)),
+					...formatDateTaskForDisplay(task),
 					canMove: true,
 					canResize: false,
 					canChangeGroup: false,
@@ -175,8 +158,14 @@ export class CalendarViewMonth extends React.Component<
 						: task.priority === TaskPriority.YELLOW
 						? "#ffec3d"
 						: "#52c41a";
+				const textColor =
+					task.priority === TaskPriority.YELLOW ? "#262626" : "#fafafa";
 				item.itemProps = {
-					style: { backgroundColor: backgroundColor, borderRadius: "50px" },
+					style: {
+						backgroundColor: backgroundColor,
+						borderRadius: "50px",
+						color: textColor,
+					},
 					onMouseDown: this.onItemClicked.bind(this, item),
 				};
 				return item;

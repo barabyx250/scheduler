@@ -4,7 +4,8 @@ import { DEFAULT_NAME_DB_CONNECION } from "../types/constants";
 import { User } from "../types/user";
 import { UserSessionEntity } from "../entities/session.entity";
 import { DBManager } from "./db_manager";
-import { UserPositionEntity } from "../entities/userPosition.entity";
+import { UserPositionEntity } from "../entities/user.position.entity";
+import { UserPosition } from "../types/userPosition";
 
 export class DBUserManager {
 	public static applyUserInnerJoins(
@@ -82,7 +83,7 @@ export class DBUserManager {
 	public static async GetUserPositionsById(
 		id: number
 	): Promise<UserPositionEntity | undefined> {
-		const sessionEntity = await (await DBManager.get())
+		const positionEntity = await (await DBManager.get())
 			.getConnection()
 			.getRepository(UserPositionEntity)
 			.createQueryBuilder("position")
@@ -90,11 +91,11 @@ export class DBUserManager {
 			.where("position.id = :id", { id })
 			.getOne();
 
-		return sessionEntity;
+		return positionEntity;
 	}
 
 	public static async GetUsersByPositionId(id: number): Promise<UserEntity[]> {
-		const sessionEntity = DBUserManager.applyUserInnerJoins(
+		const userEntities = DBUserManager.applyUserInnerJoins(
 			await (await DBManager.get())
 				.getConnection()
 				.getRepository(UserEntity)
@@ -103,6 +104,58 @@ export class DBUserManager {
 			.where("position.id = :id", { id })
 			.getMany();
 
-		return sessionEntity;
+		return userEntities;
+	}
+
+	public static async GetUserChiefs(user_id: number): Promise<UserEntity[]> {
+		const userEntity = await DBUserManager.GetUserById(user_id);
+
+		if (userEntity && userEntity.position) {
+			const chief = DBUserManager.GetUsersByPositionId(
+				userEntity.position.parent.id
+			);
+			return chief;
+		}
+
+		return [];
+	}
+
+	public static async IsPositionExistById(posId: number): Promise<boolean> {
+		const position = await DBUserManager.GetUserPositionsById(posId);
+		return position !== undefined;
+	}
+
+	public static async UpdateUserPosition(position: UserPosition) {
+		const isExist = await DBUserManager.IsPositionExistById(position.pos_id);
+		if (isExist) {
+			console.log("uup exist", position);
+			(await DBManager.get())
+				.getConnection()
+				.getRepository(UserPositionEntity)
+				.update(position.pos_id, {
+					parent: { id: position.parent_id },
+					name: position.name,
+					pos_id: position.pos_id,
+				});
+		} else {
+			const parent = await DBUserManager.GetUserPositionsById(
+				position.parent_id
+			);
+			console.log("uup", parent, position);
+
+			if (parent !== undefined) {
+				(await DBManager.get())
+					.getConnection()
+					.getRepository(UserPositionEntity)
+					.save({
+						id: position.pos_id,
+						pos_id: position.pos_id,
+						name: position.name,
+						parent: {
+							id: parent.id,
+						},
+					});
+			}
+		}
 	}
 }

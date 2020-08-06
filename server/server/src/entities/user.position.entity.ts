@@ -6,13 +6,14 @@ import {
 	PrimaryGeneratedColumn,
 	ManyToOne,
 	OneToMany,
+	PrimaryColumn,
 } from "typeorm";
 import { UserPosition } from "../types/userPosition";
 import { UserEntity } from "./user.entity";
 
 @Entity()
 export class UserPositionEntity {
-	@PrimaryGeneratedColumn()
+	@PrimaryColumn()
 	id: number;
 
 	@Column()

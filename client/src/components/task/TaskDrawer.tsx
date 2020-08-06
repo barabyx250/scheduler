@@ -1,9 +1,16 @@
 import React from "react";
-import { Drawer, Typography } from "antd";
+import { Drawer, Typography, Button } from "antd";
 import Title from "antd/lib/typography/Title";
 import { User } from "../../types/user";
-import { Task } from "../../types/task";
-import { addDays } from "date-fns/esm";
+import { Task, TaskStatus } from "../../types/task";
+import { CheckOutlined } from "@ant-design/icons";
+import { ConnectionManager } from "../../managers/connetion/connectionManager";
+import {
+	RequestType,
+	ResponseMessage,
+	ResponseCode,
+} from "../../types/requests";
+import Store from "../../app/store";
 
 const { Text, Paragraph } = Typography;
 
@@ -23,6 +30,27 @@ export class TaskDrawer extends React.Component<TaskDrawerProps> {
 		}
 
 		return "";
+	}
+
+	onTaskFinish() {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.UPDATE_TASK,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<Task>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+			}
+		);
+		if (this.props.task !== undefined) {
+			ConnectionManager.getInstance().emit(
+				RequestType.UPDATE_TASK,
+				{ ...this.props.task, status: TaskStatus.COMPLITED },
+				Store.getState().account.session
+			);
+		}
 	}
 
 	render() {
@@ -52,8 +80,18 @@ export class TaskDrawer extends React.Component<TaskDrawerProps> {
 					<Text>
 						{this.formatDate(this.props.task?.startDate)} -{" "}
 						{this.props.task !== undefined &&
-							this.formatDate(addDays(new Date(this.props.task?.endDate), -1))}
+							this.formatDate(new Date(this.props.task?.endDate))}
 					</Text>
+					<p />
+					{Store.getState().account.id === this.props.executer?.id && (
+						<Button
+							type="primary"
+							icon={<CheckOutlined />}
+							onClick={this.onTaskFinish.bind(this)}
+						>
+							Закінчити
+						</Button>
+					)}
 				</div>
 			</Drawer>
 		);

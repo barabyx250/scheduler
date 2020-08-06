@@ -26,9 +26,6 @@ export class TreeUserPosition {
 				this.positions.set(pos.parent_id, childs);
 			}
 		});
-		for (let key of this.positions.keys()) {
-			console.log("Fill", key, " ", this.positions.get(key)); //Lokesh Raj John
-		}
 	}
 
 	public findPossById(p_id: number): UserPosition {

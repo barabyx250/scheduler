@@ -1,6 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
-import { Task, TaskPriority, TaskPeriod } from "../types/task";
+import {
+	Entity,
+	PrimaryGeneratedColumn,
+	Column,
+	ManyToOne,
+	OneToOne,
+	JoinColumn,
+} from "typeorm";
+import { Task, TaskPriority, TaskPeriod, TaskStatus } from "../types/task";
 import { UserEntity } from "./user.entity";
+import { TaskFlagsEntity } from "./task.flags.entity";
 
 @Entity()
 export class TaskEntity {
@@ -33,11 +41,25 @@ export class TaskEntity {
 	})
 	period: TaskPeriod;
 
+	@Column({
+		type: "enum",
+		enum: TaskStatus,
+		default: TaskStatus.IN_PROGRESS,
+	})
+	status: TaskStatus;
+
+	@Column({ default: () => "CURRENT_TIMESTAMP" })
+	dateComplited: Date;
+
 	@ManyToOne((type) => UserEntity, (user) => user.tasksByMe)
 	userAuthor: UserEntity;
 
 	@ManyToOne((type) => UserEntity, (user) => user.myTasks)
 	userExecuter: UserEntity;
+
+	@OneToOne((type) => TaskFlagsEntity)
+	@JoinColumn()
+	flags: TaskFlagsEntity;
 
 	public ToRequestObject(): Task {
 		return {
@@ -50,6 +72,8 @@ export class TaskEntity {
 			priority: this.priority,
 			startDate: this.startDate,
 			endDate: this.endDate,
+			dateComplited: this.dateComplited,
+			status: this.status,
 		};
 	}
 }

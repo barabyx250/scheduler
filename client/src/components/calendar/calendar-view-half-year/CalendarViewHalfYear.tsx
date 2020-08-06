@@ -1,6 +1,6 @@
 import React from "react";
-import { Task, TaskPriority } from "../../../types/task";
-import { Typography } from "antd";
+import { Task, TaskPriority, TaskStatus } from "../../../types/task";
+import { Typography, Empty, Col, Row, Button } from "antd";
 import Timeline, {
 	TimelineHeaders,
 	DateHeader,
@@ -19,6 +19,12 @@ import Store from "../../../app/store";
 import { User } from "../../../types/user";
 import { addMonths, addDays } from "date-fns";
 import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
+import {
+	formatDateForDisplayTasks,
+	formatDateTaskForDisplay,
+	ifTaskBetweenDates,
+} from "../../../helpers/taskHelper";
+import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -41,22 +47,22 @@ export class CalendarViewHalfYear extends React.Component<
 	},
 	{
 		taskDrawer: TaskDrawerProps;
+		start: Date;
+		end: Date;
 	}
 > {
-	constructor(props: any) {
-		super(props);
-
-		this.setState({
-			taskDrawer: {
-				visible: false,
-				onClose: this.onItemDrawerClose.bind(this),
-			},
-		});
-	}
 	getStartEndHalfOfYear(): Date[] {
 		const date = new Date();
 		date.setDate(1);
 		date.setHours(0);
+
+		if (date.getMonth() < 6) {
+			const startYear = new Date(date.getFullYear(), 0, 1, 0, 0, 0, 1);
+			return [startYear, addMonths(startYear, 4)];
+		} else {
+			const halfYear = new Date(date.getFullYear(), 6, 1, 0, 0, 0, 1);
+			return [halfYear, addMonths(halfYear, 5)];
+		}
 
 		return [addMonths(date, -3), addMonths(date, 3)];
 	}
@@ -75,20 +81,6 @@ export class CalendarViewHalfYear extends React.Component<
 			currDate.getMonth(),
 			currDate.getDate()
 		);
-	}
-
-	formatDate(dateObject: Date) {
-		const dayNum = dateObject.getDate();
-		const monthNum = dateObject.getMonth() + 1;
-		const yearNum = dateObject.getFullYear();
-		const day: string =
-			dayNum < 10 ? "0" + dayNum.toString() : dayNum.toString();
-		const month: string =
-			monthNum < 10 ? "0" + monthNum.toString() : monthNum.toString();
-		const year: string = yearNum.toString().substr(0, 2);
-
-		const lDate = new Date(`${month}.${day}.${year}`);
-		return lDate;
 	}
 
 	getNameOfMonth(dateStr: string | undefined) {
@@ -189,36 +181,78 @@ export class CalendarViewHalfYear extends React.Component<
 		return markers;
 	}
 
-	render() {
-		const [start, end] = this.getStartEndHalfOfYear();
-		console.log("Months: ", start, end);
+	onLeftArrowClick() {
+		this.setState(({ start, end }, props: any) => ({
+			start: addMonths(start, -6),
+			end: addMonths(end, -6),
+		}));
+	}
 
-		const items: TimeLineItem[] = this.props.tasks.map((task) => {
-			const item: TimeLineItem = {
-				id: task.id,
-				group: task.id,
-				title: task.title,
-				start_time: this.formatDate(new Date(task.startDate)),
-				end_time: this.formatDate(new Date(task.endDate)),
-				canMove: true,
-				canResize: false,
-				canChangeGroup: false,
-				data: {
-					...task,
-				},
-			};
-			const backgroundColor =
-				task.priority === TaskPriority.RED
-					? "#ff4d4f"
-					: task.priority === TaskPriority.YELLOW
-					? "#ffec3d"
-					: "#52c41a";
-			item.itemProps = {
-				style: { backgroundColor: backgroundColor, borderRadius: "50px" },
-				onMouseDown: this.onItemClicked.bind(this, item),
-			};
-			return item;
+	onRightArrowClick() {
+		this.setState(({ start, end }, props: any) => ({
+			start: addMonths(start, 6),
+			end: addMonths(end, 6),
+		}));
+	}
+
+	componentWillMount() {
+		const [start, end] = this.getStartEndHalfOfYear();
+		this.setState({
+			taskDrawer: {
+				visible: false,
+				onClose: this.onItemDrawerClose.bind(this),
+			},
+			start: start,
+			end: end,
 		});
+	}
+
+	render() {
+		console.log(this.state);
+
+		if (this.state === null) return <div></div>;
+
+		//const [start, end] = this.getStartEndHalfOfYear();
+		console.log("Months: ", this.state.start, this.state.end);
+
+		const items: TimeLineItem[] = this.props.tasks
+			.filter((item) => {
+				return (
+					item.status !== TaskStatus.COMPLITED &&
+					ifTaskBetweenDates(this.state.start, this.state.end, item)
+				);
+			})
+			.map((task) => {
+				const item: TimeLineItem = {
+					id: task.id,
+					group: task.id,
+					title: task.title,
+					...formatDateTaskForDisplay(task),
+					canMove: true,
+					canResize: false,
+					canChangeGroup: false,
+					data: {
+						...task,
+					},
+				};
+				const backgroundColor =
+					task.priority === TaskPriority.RED
+						? "#ff4d4f"
+						: task.priority === TaskPriority.YELLOW
+						? "#ffec3d"
+						: "#52c41a";
+				const textColor =
+					task.priority === TaskPriority.YELLOW ? "#262626" : "#fafafa";
+				item.itemProps = {
+					style: {
+						backgroundColor: backgroundColor,
+						borderRadius: "50px",
+						color: textColor,
+					},
+					onMouseDown: this.onItemClicked.bind(this, item),
+				};
+				return item;
+			});
 
 		const groups = items.map((task) => {
 			return { id: task.id, title: task.title };
@@ -226,89 +260,123 @@ export class CalendarViewHalfYear extends React.Component<
 
 		return (
 			<div>
-				<Text strong>
-					{start.toLocaleString("uk", { year: "numeric" }).toUpperCase()}
-				</Text>
-				<Timeline
-					groups={groups}
-					items={items}
-					// minZoom={604800}
-					// maxZoom={604800 * 4}
-					canMove={false}
-					visibleTimeStart={start}
-					visibleTimeEnd={end}
-					// defaultTimeStart={start}
-					// defaultTimeEnd={end}
-					itemRenderer={({
-						item,
-						itemContext,
-						getItemProps,
-						getResizeProps,
-					}) => {
-						const { left: leftResizeProps } = getResizeProps();
-						return (
-							<div {...getItemProps(item.itemProps)}>
-								{itemContext.useResizeHandle ? (
-									<div {...leftResizeProps} />
-								) : (
-									""
-								)}
-							</div>
-						);
-					}}
-					groupRenderer={({ group }) => {
-						return (
-							<div
-								style={{
-									textAlign: "left",
-								}}
-							>
-								<span
+				<Row>
+					<Col flex="33%">
+						<Button
+							type="primary"
+							shape="circle"
+							size="small"
+							icon={<ArrowLeftOutlined />}
+							onClick={this.onLeftArrowClick.bind(this)}
+						></Button>
+					</Col>
+					<Col flex="33%">
+						<Text strong>
+							{this.state.start.toLocaleString("uk", {
+								year: "numeric",
+								month: "numeric",
+							})}
+							-
+							{this.state.end.toLocaleString("uk", {
+								year: "numeric",
+								month: "numeric",
+							})}
+						</Text>
+					</Col>
+					<Col flex="33%">
+						<Button
+							type="primary"
+							shape="circle"
+							size="small"
+							icon={<ArrowRightOutlined />}
+							onClick={this.onRightArrowClick.bind(this)}
+						></Button>
+					</Col>
+				</Row>
+				{items.length === 0 ? (
+					<Empty></Empty>
+				) : (
+					<Timeline
+						groups={groups}
+						items={items}
+						// minZoom={604800}
+						// maxZoom={604800 * 4}
+						canMove={false}
+						visibleTimeStart={this.state.start}
+						visibleTimeEnd={this.state.end}
+						// defaultTimeStart={start}
+						// defaultTimeEnd={end}
+						itemRenderer={({
+							item,
+							itemContext,
+							getItemProps,
+							getResizeProps,
+						}) => {
+							const { left: leftResizeProps } = getResizeProps();
+							return (
+								<div {...getItemProps(item.itemProps)}>
+									{itemContext.useResizeHandle ? (
+										<div {...leftResizeProps} />
+									) : (
+										""
+									)}
+								</div>
+							);
+						}}
+						groupRenderer={({ group }) => {
+							return (
+								<div
 									style={{
-										fontSize: 16,
+										textAlign: "left",
 									}}
 								>
-									{group.title}
-								</span>
-							</div>
-						);
-					}}
-				>
-					<TimelineHeaders className="sticky">
-						<SidebarHeader>
-							{({ getRootProps }) => {
-								const style = getRootProps();
-								style.style.backgroundColor = "#1890FF";
-								return <div {...style}></div>;
-							}}
-						</SidebarHeader>
-						<DateHeader
-							labelFormat="MM"
-							style={{
-								height: 50,
-								fontSize: 15,
-								color: "#DFF0FF",
-								backgroundColor: "#1890FF",
-							}}
-							intervalRenderer={(dateHeaderProps) => {
-								return (
-									<div {...dateHeaderProps?.getIntervalProps()}>
-										{this.getNameOfMonth(
-											dateHeaderProps?.intervalContext.intervalText
-										).toUpperCase()}
-									</div>
-								);
-							}}
-						/>
-					</TimelineHeaders>
-					<TodayMarker interval={2000} date={new Date()}>
-						{({ styles, date }) => {
-							styles.backgroundColor = "#722ed1";
-							return <div style={styles}></div>;
+									<span
+										style={{
+											fontSize: 16,
+										}}
+									>
+										{group.title}
+									</span>
+								</div>
+							);
 						}}
-					</TodayMarker>
-					{this.generateCustomsMarkers(start, end)}
-				</Timeline>
+					>
+						<TimelineHeaders className="sticky">
+							<SidebarHeader>
+								{({ getRootProps }) => {
+									const style = getRootProps();
+									style.style.backgroundColor = "#1890FF";
+									return <div {...style}></div>;
+								}}
+							</SidebarHeader>
+							<DateHeader
+								labelFormat="MM"
+								style={{
+									height: 50,
+									fontSize: 15,
+									color: "#DFF0FF",
+									backgroundColor: "#1890FF",
+								}}
+								intervalRenderer={(dateHeaderProps) => {
+									return (
+										<div {...dateHeaderProps?.getIntervalProps()}>
+											{this.getNameOfMonth(
+												dateHeaderProps?.intervalContext.intervalText
+											).toUpperCase()}
+										</div>
+									);
+								}}
+							/>
+						</TimelineHeaders>
+						<TodayMarker interval={2000} date={new Date()}>
+							{({ styles, date }) => {
+								styles.backgroundColor = "#722ed1";
+								return <div style={styles}></div>;
+							}}
+						</TodayMarker>
+						{this.generateCustomsMarkers(this.state.start, this.state.end)}
+					</Timeline>
+				)}
 				<TaskDrawer {...this.state?.taskDrawer}></TaskDrawer>
 			</div>
 		);

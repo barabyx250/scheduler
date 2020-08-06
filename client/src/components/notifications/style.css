@@ -1,0 +1,6 @@
+.notificationBar {
+    overflow: "auto";
+    max-height: "400px";
+    border: "1px solid #bfbfbf";
+    border-radius: "5px";
+}

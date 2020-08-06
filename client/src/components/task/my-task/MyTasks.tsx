@@ -14,12 +14,19 @@ import { Empty, Radio } from "antd";
 import { TimersManager } from "../../../managers/timersManager";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { CALLBACK_UPDATE_MY_TASK } from "../../../types/constants";
-import { User } from "../../../types/user";
+import {
+	CSSTransition,
+	TransitionGroup,
+	SwitchTransition,
+} from "react-transition-group";
+
+import "./animate.min.css";
 
 export const MyTasks: React.FC = () => {
 	const dispatch = useDispatch();
 	const accState = useSelector(selectAccount);
 	const [calendarTypeState, setCalendarTypeState] = useState(Type.WEEK);
+	const [changedAnimation, setChangedAnimation] = useState(false);
 
 	useEffect(() => {
 		ConnectionManager.getInstance().registerResponseHandler(
@@ -52,6 +59,7 @@ export const MyTasks: React.FC = () => {
 
 	const onRadioChange = (e: RadioChangeEvent) => {
 		setCalendarTypeState(e.target.value);
+		setChangedAnimation(true);
 	};
 
 	const myTaskState = useSelector(selectMyTask);
@@ -59,6 +67,7 @@ export const MyTasks: React.FC = () => {
 	if (myTaskState.length === 0) {
 		return <Empty style={{ paddingTop: "10%" }} />;
 	}
+	console.log("TEST TES", changedAnimation);
 
 	return (
 		<div>
@@ -72,6 +81,14 @@ export const MyTasks: React.FC = () => {
 				<Radio.Button value={Type.MONTH}>Місяць</Radio.Button>
 				<Radio.Button value={Type.HALF_YEAR}>Півріччя</Radio.Button>
 			</Radio.Group>
+			{/*
+				<CSSTransition
+					timeout={400}
+					classNames="calendar"
+					onEnter={() => console.log("Enter")}
+					onExited={() => console.log("Exit")}
+					unmountOnExit
+				> */}
 			<Calendar type={calendarTypeState} tasks={myTaskState}></Calendar>
 		</div>
 	);

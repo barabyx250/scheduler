@@ -3,6 +3,15 @@ import { Task } from "../../types/task";
 import { CalendarWeek } from "./calendar-view-week/CalendarViewWeek";
 import { CalendarViewMonth } from "./calendar-view-month/CalendarViewMonth";
 import { CalendarViewHalfYear } from "./calendar-view-half-year/CalendarViewHalfYear";
+import {
+	CSSTransition,
+	TransitionGroup,
+	Transition,
+	SwitchTransition,
+} from "react-transition-group";
+
+import "./calendar_animations.css";
+import { Fade } from "react-awesome-reveal";
 
 export enum Type {
 	WEEK,
@@ -16,7 +25,6 @@ export class Calendar extends React.Component<{
 }> {
 	render() {
 		let calendar = <CalendarWeek tasks={this.props.tasks}></CalendarWeek>;
-
 		if (this.props.type === Type.HALF_YEAR) {
 			calendar = (
 				<CalendarViewHalfYear tasks={this.props.tasks}></CalendarViewHalfYear>
@@ -27,6 +35,22 @@ export class Calendar extends React.Component<{
 			);
 		}
 
-		return calendar;
+		return (
+			<SwitchTransition mode="out-in">
+				<CSSTransition
+					key={this.props.type}
+					timeout={400}
+					classNames="calendar"
+					onEnter={() => console.log("Enter")}
+					onExited={() => console.log("Exit")}
+					unmountOnExit
+					addEndListener={(node, done) => {
+						node.addEventListener("transitionend", done, false);
+					}}
+				>
+					{calendar}
+				</CSSTransition>
+			</SwitchTransition>
+		);
 	}
 }

@@ -18,7 +18,7 @@ export class ConnectionManager {
 	public static getInstance(): ConnectionManager {
 		if (!ConnectionManager.instance) {
 			ConnectionManager.instance = new ConnectionManager(
-				socketIo.connect("http://localhost:8080")
+				socketIo.connect("http://localhost:8081")
 			);
 		}
 

@@ -6,12 +6,14 @@ import {
 	UsergroupAddOutlined,
 	UserAddOutlined,
 	BranchesOutlined,
+	EditOutlined,
+	UserSwitchOutlined,
 } from "@ant-design/icons";
 import React, { useState } from "react";
 import styles from "./menu.module.css";
 import { UserMenu } from "../user/menu/UserMenu";
 import { NavLink, Switch, Route } from "react-router-dom";
-import { MyTasks } from "../task/mytask/MyTasks";
+import { MyTasks } from "../task/my-task/MyTasks";
 import { CreateTask } from "../task/CreateTask";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
@@ -21,13 +23,25 @@ import { CSSTransition } from "react-transition-group";
 import "./animations.css";
 import MenuItem from "antd/lib/menu/MenuItem";
 import { SubbordinatesTasks } from "../task/subtasks/SubbordinatesTasks";
+import { EditTask } from "../task/edit-task/EditTask";
+import { Notification } from "../notifications/Notifcation";
+import { PositionsEditer } from "../positions.editer/PositionsEditer";
 
 const { Header, Content, Footer, Sider } = Layout;
+
+export enum MenuRoutes {
+	MY_TASKS = "/menu/me/tasks",
+	CREATE_USERS = "/menu/createuser",
+	CREATE_TASK = "/menu/task/create",
+	SUBBORDINATES_TASK = "/menu/subordinates/tasks",
+	TASK_EDIT = "/menu/task/edit",
+	POSITIONS_EDIT = "/menu/positions/edit",
+}
 
 const routes = [
 	{
 		key: "0",
-		path: "/menu/mytasks",
+		path: MenuRoutes.MY_TASKS,
 		name: "MyTask",
 		Component: MyTasks,
 		icon: <PieChartOutlined />,
@@ -35,7 +49,7 @@ const routes = [
 	},
 	{
 		key: "1",
-		path: "/menu/createuser",
+		path: MenuRoutes.CREATE_USERS,
 		name: "CreateUser",
 		Component: CreateUserPage,
 		icon: <UserAddOutlined />,
@@ -43,7 +57,7 @@ const routes = [
 	},
 	{
 		key: "2",
-		path: "/menu/createtask",
+		path: MenuRoutes.CREATE_TASK,
 		name: "CreateTask",
 		Component: CreateTask,
 		icon: <PlusCircleOutlined />,
@@ -51,11 +65,27 @@ const routes = [
 	},
 	{
 		key: "3",
-		path: "/menu/subordinates/tasks",
+		path: MenuRoutes.SUBBORDINATES_TASK,
 		name: "SubordinatesTasks",
 		Component: SubbordinatesTasks,
 		icon: <BranchesOutlined />,
 		content: "Задачі підлеглих",
+	},
+	{
+		key: "4",
+		path: MenuRoutes.TASK_EDIT,
+		name: "TaskEdit",
+		Component: EditTask,
+		icon: <EditOutlined />,
+		content: "Редагувати задачу",
+	},
+	{
+		key: "5",
+		path: MenuRoutes.POSITIONS_EDIT,
+		name: "PositionsEdit",
+		Component: PositionsEditer,
+		icon: <UserSwitchOutlined />,
+		content: "Редагувати посади",
 	},
 ];
 
@@ -91,46 +121,52 @@ export const MainMenu: React.FC = () => {
 					defaultSelectedKeys={[window.location.pathname]}
 					mode="inline"
 				>
-					{/* <Menu.Item
-						key="1"
-						icon={<PieChartOutlined />}
-						onClick={onMyTaskClick}
-					>
-						<NavLink to="/menu/mytasks">Мої задачі</NavLink>
-					</Menu.Item>
-					<Menu.Item
-						key="6"
-						icon={<PlusCircleOutlined />}
-						onClick={onMyTaskClick}
-					>
-						<NavLink to="/menu/createtask">Створити задачу</NavLink>
-					</Menu.Item>
-					{accState.role === UserRole.ADMIN && (
-						<Menu.Item key="7" icon={<PlusCircleOutlined />}>
-							<NavLink to="/menu/createuser">Створити користувача</NavLink>
-						</Menu.Item>
-					)}
-					<Menu.Item key="8" icon={<GroupOutlined />} onClick={onMyTaskClick}>
-						Задачі підлеглих
-					</Menu.Item> */}
-					{routes.map(({ key, path, icon, content }) => {
-						return (
-							<MenuItem key={path} icon={icon} onClick={onMyTaskClick}>
-								<NavLink to={path}>{content}</NavLink>
-							</MenuItem>
-						);
-					})}
+					{routes
+						.filter(({ path }) => {
+							if (accState.role === UserRole.USER) {
+								return (
+									path !== MenuRoutes.CREATE_USERS &&
+									path !== MenuRoutes.POSITIONS_EDIT
+								);
+							}
+							return true;
+						})
+						.map(({ key, path, icon, content }) => {
+							return (
+								<MenuItem key={path} icon={icon} onClick={onMyTaskClick}>
+									<NavLink to={path}>{content}</NavLink>
+								</MenuItem>
+							);
+						})}
 				</Menu>
 			</Sider>
 			<Layout className="site-layout">
-				<Header className="site-layout-background" style={{ padding: 0 }}>
+				<Header
+					className="site-layout-background"
+					style={{
+						padding: 0,
+						textAlign: "right",
+						display: "flex",
+						justifyContent: "flex-end",
+						alignItems: "center",
+					}}
+				>
+					<Notification></Notification>
 					<Menu
 						theme="dark"
 						mode="horizontal"
 						defaultSelectedKeys={["1"]}
 						style={headerStyle}
 					>
-						<Menu.Item key="1">
+						<Menu.Item
+							key="1"
+							style={{
+								padding: "0",
+								margin: "0",
+								minWidth: "100px",
+								textAlign: "center",
+							}}
+						>
 							<UserMenu name={accState.login}></UserMenu>
 						</Menu.Item>
 					</Menu>
@@ -143,8 +179,6 @@ export const MainMenu: React.FC = () => {
 						{routes.map(({ path, Component }) => (
 							<Route key={path} exact path={path}>
 								{({ match }) => {
-									console.log(match);
-
 									return (
 										<div
 											style={{

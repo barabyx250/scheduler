@@ -8,6 +8,13 @@ export enum RequestType {
 	CREATE_USER = "create_user",
 	GET_MY_SUBORDINATE = "get_my_subordinate",
 	GET_TASKS_SUBORDINATES = "get_tasks_subordinates",
+	UPDATE_TASK = "update_task",
+	GET_TASKS_BY_ME = "get_tasks_by_me",
+	GET_MY_NOTIFICATIONS = "get_my_notifications",
+	NOTIFICATION = "notification",
+	READ_NOTIFICATIONS = "read_notification",
+	GET_TASKS_INFO = "get_task_info",
+	UPDATE_USER_POSITIONS = "update_user_positions",
 }
 
 export enum ResponseCode {
