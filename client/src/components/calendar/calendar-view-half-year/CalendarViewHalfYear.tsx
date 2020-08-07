@@ -23,6 +23,7 @@ import {
 	formatDateForDisplayTasks,
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
+	generateTimelineItemsByTaskPeriodDates,
 } from "../../../helpers/taskHelper";
 import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
 
@@ -215,7 +216,7 @@ export class CalendarViewHalfYear extends React.Component<
 		//const [start, end] = this.getStartEndHalfOfYear();
 		console.log("Months: ", this.state.start, this.state.end);
 
-		const items: TimeLineItem[] = this.props.tasks
+		let items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
 				return (
 					item.status !== TaskStatus.COMPLITED &&
@@ -227,7 +228,7 @@ export class CalendarViewHalfYear extends React.Component<
 					id: task.id,
 					group: task.id,
 					title: task.title,
-					...formatDateTaskForDisplay(task),
+					...formatDateTaskForDisplay(task.startDate, task.endDate),
 					canMove: true,
 					canResize: false,
 					canChangeGroup: false,
@@ -254,9 +255,23 @@ export class CalendarViewHalfYear extends React.Component<
 				return item;
 			});
 
+		let periodItems: TimeLineItem[] = [];
+		items.forEach((i) => {
+			periodItems = periodItems.concat(
+				generateTimelineItemsByTaskPeriodDates(
+					i.data,
+					this.state.start,
+					this.state.end,
+					this.onItemClicked.bind(this, i)
+				)
+			);
+		});
+
 		const groups = items.map((task) => {
 			return { id: task.id, title: task.title };
 		});
+		items = items.concat(periodItems);
+		console.log("generated", items, "groups", groups);
 
 		return (
 			<div>
@@ -312,6 +327,8 @@ export class CalendarViewHalfYear extends React.Component<
 							getItemProps,
 							getResizeProps,
 						}) => {
+							console.log("render", item);
+
 							const { left: leftResizeProps } = getResizeProps();
 							return (
 								<div {...getItemProps(item.itemProps)}>

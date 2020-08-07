@@ -165,6 +165,7 @@ export const EditTask: React.FC<Props> = () => {
 			endDate: data.termin[1].toDate(),
 			status: currTask.status,
 			dateComplited: currTask.dateComplited,
+			periodDates: currTask.periodDates,
 		};
 
 		ConnectionManager.getInstance().emit(
