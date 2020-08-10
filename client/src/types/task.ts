@@ -28,6 +28,7 @@ export class Task {
 		public period: TaskPeriod,
 		public priority: TaskPriority,
 		public status: TaskStatus,
-		public dateComplited: Date
+		public dateComplited: Date,
+		public periodParentId: number
 	) {}
 }

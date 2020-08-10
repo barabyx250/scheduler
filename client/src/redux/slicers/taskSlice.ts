@@ -4,10 +4,14 @@ import { Task } from "../../types/task";
 
 export interface TaskState {
 	myTasks: Array<Task>;
+	getTaskFrom: Date;
+	getTaskTo: Date;
 }
 
 export const initialState: TaskState = {
 	myTasks: [],
+	getTaskFrom: new Date(),
+	getTaskTo: new Date(),
 };
 
 export const taskSlice = createSlice({
@@ -22,6 +26,7 @@ export const taskSlice = createSlice({
 				},
 			};
 		},
+		setGetTaskDateInterval: () => {},
 	},
 });
 

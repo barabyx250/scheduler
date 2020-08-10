@@ -8,6 +8,9 @@ import { DBTaskManager } from "../managers/db_task_manager";
 import { DBUserManager } from "../managers/db_user_manager";
 import { User } from "../types/user";
 import { UserModel } from "./user.model";
+import { generatePeriodTasks, ifTaskBetweenDates } from "../helpers/taskHelper";
+import { exec } from "child_process";
+import { TaskEntity } from "../entities/task.entity";
 
 export class TaskModel {
 	public static async createTask(
@@ -15,9 +18,20 @@ export class TaskModel {
 	): Promise<ResponseMessage<Task>> {
 		const createdTask = await DBTaskManager.CreateTask(request.data);
 		if (createdTask !== undefined) {
+			createdTask.periodParentId = createdTask.id;
+			await DBTaskManager.UpdateTask(createdTask);
+
+			const createdTaskObj = createdTask.ToRequestObject();
+			console.log("createdTaskObj", createdTaskObj);
+			if (request.data.period !== TaskPeriod.ONCE) {
+				const periodTasks = generatePeriodTasks(createdTaskObj);
+				for (var pt of periodTasks) {
+					DBTaskManager.CreateTask(pt);
+				}
+			}
 			return {
-				data: createdTask.ToRequestObject(),
-				messageInfo: `test message`,
+				data: createdTaskObj,
+				messageInfo: `SUCCESS`,
 				requestCode: ResponseCode.RES_CODE_SUCCESS,
 			};
 		}
@@ -35,6 +49,7 @@ export class TaskModel {
 				title: "",
 				dateComplited: new Date(),
 				status: TaskStatus.IN_PROGRESS,
+				periodParentId: 0,
 			},
 			messageInfo: `test message`,
 			requestCode: ResponseCode.RES_CODE_SUCCESS,
@@ -47,8 +62,21 @@ export class TaskModel {
 		const user = await DBUserManager.GetUserBySession(request.session);
 
 		if (user !== undefined) {
-			const executersTasks = await DBTaskManager.GetTasksByExecuterId(user.id);
+			let executersTasks = await DBTaskManager.GetTasksByExecuterId(user.id);
+			if (request.data.startFrom !== undefined && request.data.startTo) {
+				const startFrom: Date = new Date(request.data.startFrom);
+				const startTo: Date = new Date(request.data.startTo);
 
+				let filtredTasks: TaskEntity[] = [];
+				for (var et of executersTasks) {
+					if (ifTaskBetweenDates(startFrom, startTo, et)) {
+						filtredTasks.push(et);
+					}
+				}
+				if (filtredTasks.length !== 0) {
+					executersTasks = filtredTasks;
+				}
+			}
 			return {
 				data: executersTasks.map((task) => {
 					return task.ToRequestObject();

@@ -173,7 +173,7 @@ export class CalendarWeek extends React.Component<
 			.map((task) => {
 				const item: TimeLineItem = {
 					id: task.id,
-					group: task.id,
+					group: task.periodParentId,
 					title: task.title,
 					...formatDateTaskForDisplay(task),
 					canMove: true,
@@ -203,10 +203,14 @@ export class CalendarWeek extends React.Component<
 			});
 		console.log(items);
 
-		const groups = items.map((task) => {
-			return { id: task.id, title: task.title };
-		});
+		const groups: Array<{ id: number; title: string }> = [];
+		for (var item of items) {
+			const taskData = item.data as Task;
+			const gr = { id: taskData.periodParentId, title: taskData.title };
+			if (groups.findIndex((v) => v.id === gr.id) > -1) continue;
 
+			groups.push(gr);
+		}
 		return (
 			<div>
 				<Text strong>

@@ -5,6 +5,7 @@ import {
 	ManyToOne,
 	OneToOne,
 	JoinColumn,
+	OneToMany,
 } from "typeorm";
 import { Task, TaskPriority, TaskPeriod, TaskStatus } from "../types/task";
 import { UserEntity } from "./user.entity";
@@ -61,6 +62,11 @@ export class TaskEntity {
 	@JoinColumn()
 	flags: TaskFlagsEntity;
 
+	@Column({
+		default: 0,
+	})
+	periodParentId: number;
+
 	public ToRequestObject(): Task {
 		return {
 			id: this.id,
@@ -74,6 +80,7 @@ export class TaskEntity {
 			endDate: this.endDate,
 			dateComplited: this.dateComplited,
 			status: this.status,
+			periodParentId: this.periodParentId,
 		};
 	}
 }

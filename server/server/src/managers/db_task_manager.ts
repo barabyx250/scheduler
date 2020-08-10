@@ -35,6 +35,7 @@ export class DBTaskManager {
 				userAuthor: author,
 				userExecuter: executer,
 				flags: await DBTaskManager.CreateTaskFlags(),
+				periodParentId: task.periodParentId,
 			});
 
 		return this.GetTaskById(newTask.id);

@@ -2,15 +2,17 @@ import { Task } from "../types/task";
 import { addDays } from "date-fns/esm";
 
 export function formatDateForDisplayTasks(dateObject: Date) {
-	const dayNum = dateObject.getDate() + 1;
-	const monthNum = dateObject.getMonth() + 1;
-	const yearNum = dateObject.getFullYear();
-	const day: string = dayNum < 10 ? "0" + dayNum.toString() : dayNum.toString();
-	const month: string =
-		monthNum < 10 ? "0" + monthNum.toString() : monthNum.toString();
-	const year: string = yearNum.toString().substr(0, 2);
+	// const dayNum = dateObject.getDate() + 1;
+	// const monthNum = dateObject.getMonth() + 1;
+	// const yearNum = dateObject.getFullYear();
+	// const day: string = dayNum < 10 ? "0" + dayNum.toString() : dayNum.toString();
+	// const month: string =
+	// 	monthNum < 10 ? "0" + monthNum.toString() : monthNum.toString();
+	// const year: string = yearNum.toString().substr(0, 2);
 
-	const lDate = new Date(`${month}.${day}.${year}`);
+	//const lDate = new Date(`${month}.${day}.${year}`);
+	const lDate = new Date(dateObject);
+	//lDate.setHours(1);
 	return lDate;
 }
 
