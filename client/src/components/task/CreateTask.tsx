@@ -135,7 +135,6 @@ export const CreateTask: React.FC<Props> = () => {
 			endDate: formatDateForEndDate(data.taskDuration[1].toDate()),
 			status: TaskStatus.IN_PROGRESS,
 			dateComplited: new Date(),
-			periodDates: [],
 		};
 
 		ConnectionManager.getInstance().emit(

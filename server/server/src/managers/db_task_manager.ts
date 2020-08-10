@@ -3,8 +3,8 @@ import { getConnection, getRepository, SelectQueryBuilder } from "typeorm";
 import { DEFAULT_NAME_DB_CONNECION } from "../types/constants";
 import { UserSessionEntity } from "../entities/session.entity";
 import { DBManager } from "./db_manager";
-import { Task, TaskStatus, TaskDate } from "../types/task";
-import { TaskEntity, TaskPeriodDataEntity } from "../entities/task.entity";
+import { Task, TaskStatus } from "../types/task";
+import { TaskEntity } from "../entities/task.entity";
 import { DBUserManager } from "./db_user_manager";
 import { TaskFlagsEntity } from "../entities/task.flags.entity";
 
@@ -15,7 +15,6 @@ export class DBTaskManager {
 		query.leftJoinAndSelect("task.userAuthor", "userAuthor");
 		query.leftJoinAndSelect("task.userExecuter", "userExecuter");
 		query.leftJoinAndSelect("task.flags", "flags");
-		query.leftJoinAndSelect("task.periodDates", "periodDates");
 		return query;
 	}
 
@@ -36,33 +35,9 @@ export class DBTaskManager {
 				userAuthor: author,
 				userExecuter: executer,
 				flags: await DBTaskManager.CreateTaskFlags(),
-				periodDates: await DBTaskManager.CreateTaskDates(task.periodDates),
 			});
 
 		return this.GetTaskById(newTask.id);
-	}
-
-	public static async CreateTaskDates(
-		taskDates: TaskDate[]
-	): Promise<TaskPeriodDataEntity[]> {
-		const res: TaskPeriodDataEntity[] = [];
-
-		for (var td of taskDates) {
-			const newTask = await (await DBManager.get())
-				.getConnection()
-				.getRepository(TaskPeriodDataEntity)
-				.save({
-					startDate: td.startDate,
-					endDate: td.endDate,
-				});
-			res.push({
-				id: newTask.id,
-				endDate: newTask.endDate,
-				startDate: newTask.startDate,
-			});
-		}
-
-		return res;
 	}
 
 	public static async GetTaskById(id: number): Promise<TaskEntity | undefined> {

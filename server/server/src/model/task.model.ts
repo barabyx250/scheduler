@@ -8,17 +8,11 @@ import { DBTaskManager } from "../managers/db_task_manager";
 import { DBUserManager } from "../managers/db_user_manager";
 import { User } from "../types/user";
 import { UserModel } from "./user.model";
-import { generateDatesByPeriod } from "../helpers/taskHelper";
 
 export class TaskModel {
 	public static async createTask(
 		request: RequestMessage<Task>
 	): Promise<ResponseMessage<Task>> {
-		request.data.periodDates = generateDatesByPeriod(
-			request.data.startDate,
-			request.data.endDate,
-			request.data.period
-		);
 		const createdTask = await DBTaskManager.CreateTask(request.data);
 		if (createdTask !== undefined) {
 			return {
@@ -41,7 +35,6 @@ export class TaskModel {
 				title: "",
 				dateComplited: new Date(),
 				status: TaskStatus.IN_PROGRESS,
-				periodDates: [],
 			},
 			messageInfo: `test message`,
 			requestCode: ResponseCode.RES_CODE_SUCCESS,
@@ -107,6 +100,20 @@ export class TaskModel {
 				executersTasks.map((i) => i.ToRequestObject())
 			);
 		}
+
+		// const user = await DBUserManager.GetUserBySession(request.session);
+
+		// if (user !== undefined) {
+		// 	const executersTasks = await UserModel.getSubordinates(user.ToRequestObject());
+
+		// 	return {
+		// 		data: executersTasks.map((task) => {
+		// 			return task.ToRequestObject();
+		// 		}),
+		// 		messageInfo: "Success",
+		// 		requestCode: ResponseCode.RES_CODE_SUCCESS,
+		// 	};
+		// }
 
 		return {
 			data: resTasks,

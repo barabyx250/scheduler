@@ -16,12 +16,6 @@ export enum TaskStatus {
 	COMPLITED,
 }
 
-export interface TaskDate {
-	startDate: Date;
-	endDate: Date;
-	id: number;
-}
-
 export class Task {
 	constructor(
 		public id: number,
@@ -34,7 +28,6 @@ export class Task {
 		public period: TaskPeriod,
 		public priority: TaskPriority,
 		public status: TaskStatus,
-		public dateComplited: Date,
-		public periodDates: TaskDate[]
+		public dateComplited: Date
 	) {}
 }
