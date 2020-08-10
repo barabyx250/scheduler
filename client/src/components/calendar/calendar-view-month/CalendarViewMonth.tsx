@@ -20,7 +20,6 @@ import {
 	formatDateForDisplayTasks,
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
-	generateTimelineItemsByTaskPeriodDates,
 } from "../../../helpers/taskHelper";
 import { Fade } from "react-awesome-reveal";
 
@@ -133,7 +132,7 @@ export class CalendarViewMonth extends React.Component<
 	render() {
 		const [start, end] = this.getStartEndOfMonth();
 
-		let items: TimeLineItem[] = this.props.tasks
+		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
 				return (
 					item.status !== TaskStatus.COMPLITED &&
@@ -145,7 +144,7 @@ export class CalendarViewMonth extends React.Component<
 					id: task.id,
 					group: task.id,
 					title: task.title,
-					...formatDateTaskForDisplay(task.startDate, task.endDate),
+					...formatDateTaskForDisplay(task),
 					canMove: true,
 					canResize: false,
 					canChangeGroup: false,
@@ -171,20 +170,7 @@ export class CalendarViewMonth extends React.Component<
 				};
 				return item;
 			});
-
-		let periodItems: TimeLineItem[] = [];
-		items.forEach((i) => {
-			periodItems = periodItems.concat(
-				generateTimelineItemsByTaskPeriodDates(
-					i.data,
-					start,
-					end,
-					this.onItemClicked.bind(this, i)
-				)
-			);
-		});
-
-		items = items.concat(periodItems);
+		console.log(items);
 
 		const groups = items.map((task) => {
 			return { id: task.id, title: task.title };

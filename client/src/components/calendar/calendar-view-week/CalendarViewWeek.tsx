@@ -21,13 +21,12 @@ import { TaskDrawerProps, TaskDrawer } from "../../task/TaskDrawer";
 import {
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
-	generateTimelineItemsByTaskPeriodDates,
 } from "../../../helpers/taskHelper";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const { Text } = Typography;
 
-export interface TimeLineItem {
+interface TimeLineItem {
 	id: number;
 	group: number;
 	title: string;
@@ -164,7 +163,7 @@ export class CalendarWeek extends React.Component<
 		const currDate = this.getCurrDateDays();
 		const start = this.startOfWeek(currDate);
 
-		let items: TimeLineItem[] = this.props.tasks
+		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
 				return (
 					item.status !== TaskStatus.COMPLITED &&
@@ -176,7 +175,7 @@ export class CalendarWeek extends React.Component<
 					id: task.id,
 					group: task.id,
 					title: task.title,
-					...formatDateTaskForDisplay(task.startDate, task.endDate),
+					...formatDateTaskForDisplay(task),
 					canMove: true,
 					canResize: false,
 					canChangeGroup: false,
@@ -202,20 +201,7 @@ export class CalendarWeek extends React.Component<
 				};
 				return item;
 			});
-
-		let periodItems: TimeLineItem[] = [];
-		items.forEach((i) => {
-			periodItems = periodItems.concat(
-				generateTimelineItemsByTaskPeriodDates(
-					i.data,
-					start,
-					addDays(7, start),
-					this.onItemClicked.bind(this, i)
-				)
-			);
-		});
-
-		items = items.concat(periodItems);
+		console.log(items);
 
 		const groups = items.map((task) => {
 			return { id: task.id, title: task.title };
