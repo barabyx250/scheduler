@@ -22,6 +22,7 @@ import {
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
 import { Fade } from "react-awesome-reveal";
+import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
 
 const { Text } = Typography;
 
@@ -55,6 +56,10 @@ export class CalendarViewMonth extends React.Component<
 				onClose: this.onItemDrawerClose.bind(this),
 			},
 		});
+
+		const [start, end] = this.getStartEndOfMonth();
+
+		Store.dispatch(setGetTaskDateInterval({ from: start, to: end }));
 	}
 	getStartEndOfMonth(): Date[] {
 		var date = new Date(),
@@ -131,6 +136,8 @@ export class CalendarViewMonth extends React.Component<
 
 	render() {
 		const [start, end] = this.getStartEndOfMonth();
+
+		//Store.dispatch(setGetTaskDateInterval({ from: start, to: end }));
 
 		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {

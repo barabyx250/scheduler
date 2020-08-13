@@ -8,7 +8,11 @@ import {
 	ResponseCode,
 } from "../../../types/requests";
 import { useDispatch, useSelector } from "react-redux";
-import { setTasks, selectMyTask } from "../../../redux/slicers/taskSlice";
+import {
+	setTasks,
+	selectMyTask,
+	selectTaskDateInterval,
+} from "../../../redux/slicers/taskSlice";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
 import { Empty, Radio } from "antd";
 import { TimersManager } from "../../../managers/timersManager";
@@ -19,6 +23,7 @@ import {
 	TransitionGroup,
 	SwitchTransition,
 } from "react-transition-group";
+import Store from "../../../app/store";
 
 import "./animate.min.css";
 
@@ -37,17 +42,20 @@ export const MyTasks: React.FC = () => {
 					console.log(`Error: ${dataMessage.requestCode}`);
 					return;
 				}
-				console.log(data);
+				console.log("GOT TASKS", data);
 				dispatch(setTasks(dataMessage.data));
 			}
 		);
 		TimersManager.getInstance().subscribeCallback(
 			CALLBACK_UPDATE_MY_TASK,
-			3000,
+			1000,
 			() => {
 				ConnectionManager.getInstance().emit(
 					RequestType.GET_MY_TASKS,
-					{},
+					{
+						startFrom: Store.getState().task.getTaskFrom,
+						startTo: Store.getState().task.getTaskTo,
+					},
 					accState.session
 				);
 			}

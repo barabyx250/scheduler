@@ -15,6 +15,11 @@ export enum RequestType {
 	READ_NOTIFICATIONS = "read_notification",
 	GET_TASKS_INFO = "get_task_info",
 	UPDATE_USER_POSITIONS = "update_user_positions",
+	GET_MY_PARENT_TASK = "get_my_parent_task",
+	FINISH_TASK = "finish_task",
+	GET_COMPLITED_TASKS_BY_ME = "get_complited_tasks_by_me",
+	GET_COMPLITED_TASKS_BY_SUBORDINATES = "get_complited_tasks_by_subordinates",
+	UPDATE_USER_INFO = "update_user_info",
 }
 
 export enum ResponseCode {

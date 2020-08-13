@@ -6,12 +6,11 @@ import {
 } from "./types/requests";
 import { UserModel } from "./model/user.model";
 import { TaskModel } from "./model/task.model";
-import { Task } from "./types/task";
+import { Task, TaskReport } from "./types/task";
 import { logDev } from "./logger/config";
 import { User } from "./types/user";
 import { DBUserManager } from "./managers/db_user_manager";
-import { TreeUserPosition, UserPosition } from "./types/userPosition";
-import { DBSessionManager } from "./managers/db_session_manager";
+import { UserPosition } from "./types/userPosition";
 import { NotificationModel } from "./model/notification.model";
 
 export class RequestManager {
@@ -248,6 +247,71 @@ export class RequestManager {
 			const response = await UserModel.updateUserPositions(m.data);
 			socket.emit(RequestType.UPDATE_USER_POSITIONS, response);
 		});
+
+		socket.on(RequestType.GET_MY_PARENT_TASK, async (m: any) => {
+			if ((m as RequestMessage<any>).session === "") {
+				socket.emit(RequestType.GET_MY_PARENT_TASK, {
+					data: [],
+					messageInfo: "Session is invalid",
+					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+				} as ResponseMessage<Task[]>);
+				return;
+			}
+			const response = await TaskModel.getTasksByExecuter(m);
+			response.data = response.data.filter((t) => t.periodParentId === t.id);
+			socket.emit(RequestType.GET_MY_PARENT_TASK, response);
+		});
+
+		socket.on(RequestType.GET_COMPLITED_TASKS_BY_ME, async (m: any) => {
+			if ((m as RequestMessage<any>).session === "") {
+				socket.emit(RequestType.GET_COMPLITED_TASKS_BY_ME, {
+					data: [],
+					messageInfo: "Session is invalid",
+					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+				} as ResponseMessage<Task[]>);
+				return;
+			}
+			const response = await TaskModel.getComplitedTasksByExecuter(m);
+			const response2 = await TaskModel.getComplitedTasksByAuthor(m);
+			response2.data.forEach((element) => {
+				if (response.data.find((t) => t.id === element.id) === undefined) {
+					response.data.push(element);
+				}
+			});
+			socket.emit(RequestType.GET_COMPLITED_TASKS_BY_ME, response);
+		});
+
+		socket.on(
+			RequestType.FINISH_TASK,
+			async (m: RequestMessage<{ id: number; report: TaskReport }>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.FINISH_TASK, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await TaskModel.finishTask(m.data.id, m.data.report);
+				socket.emit(RequestType.FINISH_TASK, response);
+			}
+		);
+
+		socket.on(
+			RequestType.UPDATE_USER_INFO,
+			async (m: RequestMessage<Array<User>>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.UPDATE_USER_INFO, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await UserModel.updateUsersInfo(m.data);
+				socket.emit(RequestType.UPDATE_USER_INFO, response);
+			}
+		);
 
 		socket.on("disconnect", () => {
 			console.log("Client disconnected");

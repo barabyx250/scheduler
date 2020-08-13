@@ -22,7 +22,7 @@ import {
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
 
 const { Text } = Typography;
 
@@ -56,6 +56,15 @@ export class CalendarWeek extends React.Component<
 				onClose: this.onItemDrawerClose.bind(this),
 			},
 		});
+
+		const currDate = this.getCurrDateDays();
+		const start = this.startOfWeek(currDate);
+		Store.dispatch(
+			setGetTaskDateInterval({
+				from: start,
+				to: addDays(7, start),
+			})
+		);
 	}
 	startOfWeek(date: Date) {
 		var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
@@ -214,7 +223,7 @@ export class CalendarWeek extends React.Component<
 		return (
 			<div>
 				<Text strong>
-					{start.getDate() + " - " + addDays(7, start).getDate()}{" "}
+					{start.getDate() + " - " + addDays(6, start).getDate()}{" "}
 					{start
 						.toLocaleString("uk", { month: "long", year: "numeric" })
 						.toUpperCase()}

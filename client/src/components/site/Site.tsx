@@ -70,7 +70,7 @@ export class Site extends React.Component<{}, AccountState> {
 		return (
 			<div className="App">
 				<header className="App-header">
-					{this.state.id === 0 ? (
+					{this.state.id === 0 || this.state.session === "" ? (
 						<Login></Login>
 					) : (
 						<div>
@@ -81,7 +81,6 @@ export class Site extends React.Component<{}, AccountState> {
 								<MainMenu></MainMenu>
 							</Route>
 						</div>
-						// </Switch>
 					)}
 				</header>
 			</div>

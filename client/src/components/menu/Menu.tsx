@@ -11,7 +11,7 @@ import {
 } from "@ant-design/icons";
 import React, { useState } from "react";
 import styles from "./menu.module.css";
-import { UserMenu } from "../user/menu/UserMenu";
+import { UserMenu, UserMenuPath } from "../user/menu/UserMenu";
 import { NavLink, Switch, Route } from "react-router-dom";
 import { MyTasks } from "../task/my-task/MyTasks";
 import { CreateTask } from "../task/CreateTask";
@@ -26,6 +26,9 @@ import { SubbordinatesTasks } from "../task/subtasks/SubbordinatesTasks";
 import { EditTask } from "../task/edit-task/EditTask";
 import { Notification } from "../notifications/Notifcation";
 import { PositionsEditer } from "../positions.editer/PositionsEditer";
+import { TaskSelector } from "../task/task-selector/TaskSelector";
+import { ComplitedTasks } from "../task/complitedTasks/ComplitedTasks";
+import { UserSettings } from "../user/settings/UserSettings";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -36,6 +39,7 @@ export enum MenuRoutes {
 	SUBBORDINATES_TASK = "/menu/subordinates/tasks",
 	TASK_EDIT = "/menu/task/edit",
 	POSITIONS_EDIT = "/menu/positions/edit",
+	COMPLITED_TASKS = "/menu/task/selector",
 }
 
 const routes = [
@@ -86,6 +90,14 @@ const routes = [
 		Component: PositionsEditer,
 		icon: <UserSwitchOutlined />,
 		content: "Редагувати посади",
+	},
+	{
+		key: "6",
+		path: MenuRoutes.COMPLITED_TASKS,
+		name: "ComplitedTasks",
+		Component: ComplitedTasks,
+		icon: <UserSwitchOutlined />,
+		content: "Завершені задачі",
 	},
 ];
 
@@ -201,6 +213,13 @@ export const MainMenu: React.FC = () => {
 								}}
 							</Route>
 						))}
+						<Route
+							key={UserMenuPath.SETTINGS}
+							exact
+							path={UserMenuPath.SETTINGS}
+						>
+							<UserSettings></UserSettings>
+						</Route>
 					</div>
 				</Content>
 				<Footer style={{ textAlign: "center" }}>

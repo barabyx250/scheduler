@@ -25,6 +25,7 @@ import {
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
 import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
 
 const { Text } = Typography;
 
@@ -182,6 +183,12 @@ export class CalendarViewHalfYear extends React.Component<
 	}
 
 	onLeftArrowClick() {
+		Store.dispatch(
+			setGetTaskDateInterval({
+				from: addMonths(this.state.start, -6),
+				to: addMonths(this.state.end, -6),
+			})
+		);
 		this.setState(({ start, end }, props: any) => ({
 			start: addMonths(start, -6),
 			end: addMonths(end, -6),
@@ -189,6 +196,12 @@ export class CalendarViewHalfYear extends React.Component<
 	}
 
 	onRightArrowClick() {
+		Store.dispatch(
+			setGetTaskDateInterval({
+				from: addMonths(this.state.start, 6),
+				to: addMonths(this.state.end, 6),
+			})
+		);
 		this.setState(({ start, end }, props: any) => ({
 			start: addMonths(start, 6),
 			end: addMonths(end, 6),
@@ -205,6 +218,7 @@ export class CalendarViewHalfYear extends React.Component<
 			start: start,
 			end: end,
 		});
+		Store.dispatch(setGetTaskDateInterval({ from: start, to: end }));
 	}
 
 	render() {
@@ -214,6 +228,9 @@ export class CalendarViewHalfYear extends React.Component<
 
 		//const [start, end] = this.getStartEndHalfOfYear();
 		console.log("Months: ", this.state.start, this.state.end);
+		// Store.dispatch(
+		// 	setGetTaskDateInterval({ from: this.state.start, to: this.state.end })
+		// );
 
 		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {

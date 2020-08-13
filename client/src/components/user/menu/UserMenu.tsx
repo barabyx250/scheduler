@@ -1,8 +1,12 @@
-import { Menu, Dropdown } from "antd";
+import { Menu, Dropdown, Typography } from "antd";
 import React from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { ACCOUNT_STORAGE_KEY } from "../../../types/constants";
 import { TimersManager } from "../../../managers/timersManager";
+
+export enum UserMenuPath {
+	SETTINGS = "/user/settings",
+}
 
 export class UserMenu extends React.Component<{
 	name?: string;
@@ -20,7 +24,11 @@ export class UserMenu extends React.Component<{
 				overlay={
 					<div>
 						<Menu>
-							<Menu.Item>Мої налаштування</Menu.Item>
+							<Menu.Item>
+								<Typography.Link href={UserMenuPath.SETTINGS}>
+									Мої налаштування
+								</Typography.Link>
+							</Menu.Item>
 							<Menu.Item danger onClick={this.onQuitClick}>
 								Вийти
 							</Menu.Item>

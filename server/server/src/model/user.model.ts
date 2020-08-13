@@ -145,4 +145,32 @@ export class UserModel {
 			requestCode: ResponseCode.RES_CODE_SUCCESS,
 		};
 	}
+
+	public static async updateUsersInfo(
+		users: User[]
+	): Promise<ResponseMessage<any>> {
+		for (const user of users) {
+			const userEntity = await DBUserManager.GetUserById(user.id);
+
+			if (userEntity) {
+				if (user.login !== "") userEntity.login = user.login;
+
+				if (user.firstName !== "") userEntity.firstName = user.firstName;
+
+				if (user.secondName !== "") userEntity.secondName = user.secondName;
+
+				if (user.middleName !== "") userEntity.middleName = user.middleName;
+
+				if (user.password !== "") userEntity.password = user.password;
+
+				DBUserManager.UpdateUserInfo(userEntity);
+			}
+		}
+
+		return {
+			data: {},
+			messageInfo: "SUCCESS",
+			requestCode: ResponseCode.RES_CODE_SUCCESS,
+		};
+	}
 }

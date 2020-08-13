@@ -10,7 +10,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { setTasks, selectMyTask } from "../../../redux/slicers/taskSlice";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
-import { Empty, Radio, Select } from "antd";
+import { Empty, Radio, Select, Typography } from "antd";
 import { TimersManager } from "../../../managers/timersManager";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { CALLBACK_UPDATE_MY_TASK } from "../../../types/constants";
@@ -80,6 +80,7 @@ export const SubbordinatesTasks: React.FC = () => {
 
 	return (
 		<div>
+			<Typography.Title level={3}>Оберіть підлеглих</Typography.Title>
 			<Select
 				mode="multiple"
 				style={{ width: "30%" }}

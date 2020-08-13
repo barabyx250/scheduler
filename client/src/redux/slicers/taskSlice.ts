@@ -26,14 +26,27 @@ export const taskSlice = createSlice({
 				},
 			};
 		},
-		setGetTaskDateInterval: () => {},
+		setGetTaskDateInterval: (
+			state: TaskState,
+			action: PayloadAction<{ from: Date; to: Date }>
+		) => {
+			return {
+				...state,
+				getTaskFrom: action.payload.from,
+				getTaskTo: action.payload.to,
+			};
+		},
 	},
 });
 
-export const { setTasks } = taskSlice.actions;
+export const { setTasks, setGetTaskDateInterval } = taskSlice.actions;
 
 export const selectMyTask = (state: RootState) => {
 	return state.task.myTasks;
+};
+
+export const selectTaskDateInterval = (state: RootState) => {
+	return { from: state.task.getTaskFrom, to: state.task.getTaskTo };
 };
 
 export default taskSlice.reducer;

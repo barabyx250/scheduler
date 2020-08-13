@@ -20,6 +20,7 @@ export class ServerManager {
 		this.listen();
 		DBManager.get().then(() => {
 			NotificationModel.StartTaskProgressNotification(this.io);
+			NotificationModel.StartTomorrowTaskNotification(this.io);
 		});
 	}
 

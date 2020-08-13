@@ -4,6 +4,7 @@ import {
 	NotificationFilled,
 	InfoCircleTwoTone,
 	CloseOutlined,
+	FullscreenOutlined,
 } from "@ant-design/icons";
 import { NotificationItem, NotificationType } from "../../types/notification";
 import {
@@ -15,6 +16,7 @@ import {
 	Button,
 	Row,
 	Col,
+	message,
 } from "antd";
 import { ConnectionManager } from "../../managers/connetion/connectionManager";
 import {
@@ -71,6 +73,10 @@ export const Notification: React.FC = () => {
 			RequestType.GET_MY_NOTIFICATIONS,
 			(data: ResponseMessage<NotificationItem[]>) => {
 				console.log("get notifications", data);
+				if (data.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					message.error(data.messageInfo);
+					return;
+				}
 				setNotificationItems(
 					data.data.sort((a: NotificationItem, b: NotificationItem) => {
 						return new Date(a.dateCreation) <= new Date(b.dateCreation)
@@ -112,7 +118,9 @@ export const Notification: React.FC = () => {
 	};
 
 	const onSaveNotificationClick = (obj: any) => {
-		const notId = Number(obj.key);
+		console.log("CLICK", obj.target);
+
+		const notId = Number(obj.currentTarget.value);
 		const not = notificationItems.find((n) => n.id === notId);
 		if (not) {
 			if (
@@ -125,11 +133,14 @@ export const Notification: React.FC = () => {
 						const dataMessage = data as ResponseMessage<Array<Task>>;
 						console.log("Data message", dataMessage);
 						if (
-							dataMessage.requestCode ===
-								ResponseCode.RES_CODE_INTERNAL_ERROR ||
-							dataMessage.data.length === 0
+							dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
 						) {
 							console.log(`Error: ${dataMessage.requestCode}`);
+							return;
+						}
+
+						if (dataMessage.data.length === 0) {
+							message.error("Помилка! Мабудь, задача вже видалена.", 5);
 							return;
 						}
 
@@ -167,6 +178,7 @@ export const Notification: React.FC = () => {
 						);
 					}
 				);
+				console.log("CLICK ON NOT ", not);
 
 				ConnectionManager.getInstance().emit(
 					RequestType.GET_TASKS_INFO,
@@ -201,7 +213,6 @@ export const Notification: React.FC = () => {
 								<Menu.Item
 									key={not.id}
 									icon={<InfoCircleTwoTone />}
-									onClick={onSaveNotificationClick}
 									style={{
 										border: "1px solid #1890ff",
 										borderRadius: "5px",
@@ -227,34 +238,53 @@ export const Notification: React.FC = () => {
 												>
 													{not.title.toUpperCase()}
 												</Typography.Text>
+
+												<p />
+												<div
+													style={{
+														textOverflow: "ellipsis",
+														overflow: "hidden",
+														whiteSpace: "normal",
+													}}
+												>
+													{not.content}
+												</div>
+												<Row>
+													<Col flex="50%">
+														<Button
+															type="link"
+															icon={<FullscreenOutlined />}
+															value={not.id}
+															onClick={onSaveNotificationClick}
+														>
+															Відкрити
+														</Button>
+													</Col>
+													<Col flex="50%">
+														<div style={{ textAlign: "right" }}>
+															<Typography.Text strong>
+																{dateCreation.toLocaleString("uk")}
+															</Typography.Text>
+														</div>
+													</Col>
+												</Row>
 											</Col>
-											<Col flex="auto">
+											<Col flex="auto" style={{ paddingLeft: "1%" }}>
 												<Button
-													type="default"
-													shape="circle"
-													size="small"
+													type="ghost"
+													// shape="circle"
+													// size="large"
 													icon={<CloseOutlined />}
-													style={{ border: "0" }}
+													style={{
+														// border: "0",
+														width: "100%",
+														height: "100%",
+													}}
 													value={not.id}
 													onClick={onCloseNotification}
 												/>
 											</Col>
 										</Row>
-										<p />
-										<div
-											style={{
-												textOverflow: "ellipsis",
-												overflow: "hidden",
-												whiteSpace: "normal",
-											}}
-										>
-											{not.content}
-										</div>
-										<div style={{ textAlign: "right" }}>
-											<Typography.Text strong>
-												{dateCreation.toLocaleString("uk")}
-											</Typography.Text>
-										</div>
 									</div>
 								</Menu.Item>
 							);

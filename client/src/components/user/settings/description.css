@@ -1,0 +1,16 @@
+.description {}
+
+.description.ant-descriptions-item-content {
+    border: #d9d9d9 solid 1px;
+    text-align: left;
+}
+
+.description.ant-descriptions-item-content:last-child {
+    border-right: #d9d9d9 solid 1px;
+}
+
+th.description.ant-descriptions-item-label {
+    background-color: #d6e4ff;
+    color: #141414;
+    border-color: #d9d9d9;
+}

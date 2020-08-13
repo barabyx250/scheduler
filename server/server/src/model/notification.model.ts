@@ -11,8 +11,20 @@ import { RequestManager } from "../request-manager";
 import { DBTaskManager } from "../managers/db_task_manager";
 import { RequestType } from "../types/requests";
 import { User } from "../types/user";
-import { TEN_PERCENT_OF_DAY } from "../types/constants";
+import {
+	TEN_PERCENT_OF_DAY,
+	TEN_MINUTES_IN_MILLISECONDS,
+} from "../types/constants";
 import { TaskStatus } from "../types/task";
+import {
+	addDays,
+	startOfDay,
+	endOfDay,
+	startOfTomorrow,
+	endOfTomorrow,
+} from "date-fns";
+import { logDev } from "../logger/config";
+import moment from "moment";
 
 export class NotificationModel {
 	public static async GetByRecipient(
@@ -299,5 +311,46 @@ export class NotificationModel {
 				}
 			}
 		}, 5000);
+	}
+
+	public static async StartTomorrowTaskNotification(io: SocketIO.Server) {
+		setInterval(async () => {
+			const tommorowDateStart = startOfTomorrow();
+			const tommorowDateEnd = endOfTomorrow();
+
+			console.log(
+				"GET TASK BETWEEN DATES: ",
+				tommorowDateStart,
+				tommorowDateEnd
+			);
+
+			const tasks = await DBTaskManager.GetTasksStartBetweenDates(
+				tommorowDateStart,
+				tommorowDateEnd
+			);
+			for (var task of tasks) {
+				if (!task.flags.isNotificationForStartWas) {
+					const notItem: NotificationItem = {
+						content: `Завтра початок виконання задачі: "${task.title}"`,
+						dateCreation: new Date(),
+						customData: JSON.stringify(task.ToRequestObject()),
+						from_id: task.userAuthor.id,
+						to_id: task.userExecuter.id,
+						id: 0,
+						title: "Сповіщення про старт задачі",
+						type: NotificationType.SYSTEM,
+						wasSend: false,
+					};
+					NotificationModel.SendNotificationToUser(
+						task.userExecuter.id,
+						notItem,
+						io
+					);
+
+					task.flags.isNotificationForStartWas = true;
+					DBTaskManager.UpdateTaskFlags(task.flags);
+				}
+			}
+		}, TEN_MINUTES_IN_MILLISECONDS);
 	}
 }

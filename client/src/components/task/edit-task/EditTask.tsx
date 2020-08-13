@@ -86,22 +86,20 @@ export const EditTask: React.FC<Props> = () => {
 		);
 
 		ConnectionManager.getInstance().registerResponseOnceHandler(
-			RequestType.GET_TASKS_BY_ME,
+			RequestType.GET_MY_PARENT_TASK,
 			(data) => {
 				const dataMessage = data as ResponseMessage<Array<Task>>;
 				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
 					console.log(`Error: ${dataMessage.requestCode}`);
 					return;
 				}
-				console.log(RequestType.GET_TASKS_BY_ME, data);
-				setTasksState(
-					dataMessage.data.filter((t) => t.status !== TaskStatus.COMPLITED)
-				);
+				console.log(RequestType.GET_MY_PARENT_TASK, data);
+				setTasksState(dataMessage.data);
 			}
 		);
 
 		ConnectionManager.getInstance().emit(
-			RequestType.GET_TASKS_BY_ME,
+			RequestType.GET_MY_PARENT_TASK,
 			{},
 			accState.session
 		);
@@ -166,6 +164,7 @@ export const EditTask: React.FC<Props> = () => {
 			status: currTask.status,
 			dateComplited: currTask.dateComplited,
 			periodParentId: currTask.periodParentId,
+			report: currTask.report,
 		};
 
 		ConnectionManager.getInstance().emit(

@@ -23,4 +23,10 @@ export class TaskFlagsEntity {
 
 	@Column()
 	isTenPrecentProgress: boolean;
+
+	@Column({ default: false })
+	isNotificationForStartWas: boolean;
+
+	@Column({ default: false })
+	isRemoved: boolean;
 }

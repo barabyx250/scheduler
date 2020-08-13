@@ -12,7 +12,17 @@ import {
 } from "../../types/userPosition";
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
-import { Tree, Typography, Input, Button, Row, Col, List, Modal } from "antd";
+import {
+	Tree,
+	Typography,
+	Input,
+	Button,
+	Row,
+	Col,
+	List,
+	Modal,
+	message,
+} from "antd";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 
 import "./animations.css";
@@ -76,6 +86,20 @@ export const PositionsEditer: React.FC = () => {
 	};
 
 	const onNameChangeClick = () => {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.UPDATE_USER_POSITIONS,
+			(data: any) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<UserPosition[]>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					message.error(dataMessage.requestCode);
+					return;
+				}
+
+				message.success("Оновлено!");
+			}
+		);
+
 		ConnectionManager.getInstance().emit(
 			RequestType.UPDATE_USER_POSITIONS,
 			[currentPosition],

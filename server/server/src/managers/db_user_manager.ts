@@ -158,4 +158,17 @@ export class DBUserManager {
 			}
 		}
 	}
+
+	public static async UpdateUserInfo(user: UserEntity) {
+		(await DBManager.get())
+			.getConnection()
+			.getRepository(UserEntity)
+			.update(user.id, {
+				login: user.login,
+				firstName: user.firstName,
+				middleName: user.middleName,
+				secondName: user.secondName,
+				password: user.password,
+			});
+	}
 }

@@ -29,6 +29,15 @@ export class Task {
 		public priority: TaskPriority,
 		public status: TaskStatus,
 		public dateComplited: Date,
-		public periodParentId: number
+		public periodParentId: number,
+		public report: TaskReport
+	) {}
+}
+
+export class TaskReport {
+	constructor(
+		public id: number,
+		public content: string,
+		public dateCreation: Date
 	) {}
 }

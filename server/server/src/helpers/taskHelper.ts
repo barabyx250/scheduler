@@ -24,6 +24,8 @@ export function generatePeriodTasks(task: Task): Task[] {
 			periodTask.endDate = addYears(new Date(task.endDate), i);
 		}
 
+		periodTask.startDate.setHours(1, 0, 0, 0);
+
 		periodTasks.push(periodTask);
 	}
 

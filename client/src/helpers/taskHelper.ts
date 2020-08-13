@@ -12,16 +12,14 @@ export function formatDateForDisplayTasks(dateObject: Date) {
 
 	//const lDate = new Date(`${month}.${day}.${year}`);
 	const lDate = new Date(dateObject);
-	//lDate.setHours(1);
+	lDate.setHours(0, 1, 1, 1);
 	return lDate;
 }
 
 export function formatDateTaskForDisplay(task: Task) {
 	return {
-		start_time: formatDateForDisplayTasks(
-			addDays(new Date(task.startDate), -1)
-		),
-		end_time: formatDateForDisplayTasks(new Date(task.endDate)),
+		start_time: formatDateForDisplayTasks(new Date(task.startDate)),
+		end_time: formatDateForDisplayTasks(addDays(new Date(task.endDate), 1)),
 	};
 }
 

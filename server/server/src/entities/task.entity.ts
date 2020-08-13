@@ -10,6 +10,7 @@ import {
 import { Task, TaskPriority, TaskPeriod, TaskStatus } from "../types/task";
 import { UserEntity } from "./user.entity";
 import { TaskFlagsEntity } from "./task.flags.entity";
+import { TaskReportEntity } from "./task.report.entity";
 
 @Entity()
 export class TaskEntity {
@@ -62,6 +63,10 @@ export class TaskEntity {
 	@JoinColumn()
 	flags: TaskFlagsEntity;
 
+	@OneToOne((type) => TaskReportEntity)
+	@JoinColumn()
+	report: TaskReportEntity;
+
 	@Column({
 		default: 0,
 	})
@@ -81,6 +86,7 @@ export class TaskEntity {
 			dateComplited: this.dateComplited,
 			status: this.status,
 			periodParentId: this.periodParentId,
+			report: this.report.ToRequestObject(),
 		};
 	}
 }

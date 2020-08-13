@@ -1,8 +1,8 @@
 import React from "react";
-import { Drawer, Typography, Button } from "antd";
+import { Drawer, Typography, Button, Modal, Input, Alert } from "antd";
 import Title from "antd/lib/typography/Title";
 import { User } from "../../types/user";
-import { Task, TaskStatus } from "../../types/task";
+import { Task, TaskStatus, TaskReport } from "../../types/task";
 import { CheckOutlined } from "@ant-design/icons";
 import { ConnectionManager } from "../../managers/connetion/connectionManager";
 import {
@@ -11,6 +11,7 @@ import {
 	ResponseCode,
 } from "../../types/requests";
 import Store from "../../app/store";
+import { ACCOUNT_STORAGE_KEY } from "../../types/constants";
 
 const { Text, Paragraph } = Typography;
 
@@ -22,7 +23,16 @@ export interface TaskDrawerProps {
 	onClose: () => void;
 }
 
-export class TaskDrawer extends React.Component<TaskDrawerProps> {
+export class TaskDrawer extends React.Component<
+	TaskDrawerProps,
+	{
+		showModalReportError: boolean;
+	}
+> {
+	componentWillMount() {
+		this.setState({ showModalReportError: false });
+	}
+
 	formatDate(date: Date | undefined) {
 		if (date !== undefined) {
 			let newDate = new Date(date);
@@ -34,7 +44,7 @@ export class TaskDrawer extends React.Component<TaskDrawerProps> {
 
 	onTaskFinish() {
 		ConnectionManager.getInstance().registerResponseOnceHandler(
-			RequestType.UPDATE_TASK,
+			RequestType.FINISH_TASK,
 			(data) => {
 				console.log(data);
 				const dataMessage = data as ResponseMessage<Task>;
@@ -44,13 +54,46 @@ export class TaskDrawer extends React.Component<TaskDrawerProps> {
 				}
 			}
 		);
-		if (this.props.task !== undefined) {
-			ConnectionManager.getInstance().emit(
-				RequestType.UPDATE_TASK,
-				{ ...this.props.task, status: TaskStatus.COMPLITED },
-				Store.getState().account.session
-			);
+
+		const report: TaskReport = {
+			id: 0,
+			content: "",
+			dateCreation: new Date(),
+		};
+
+		if (this.props.task) {
+			report.id = this.props.task?.report.id;
 		}
+
+		const onReportTextChange: (
+			event: React.ChangeEvent<HTMLTextAreaElement>
+		) => void = ({ target: { value } }) => {
+			if (value !== "") {
+				report.content = value;
+			}
+		};
+
+		Modal.confirm({
+			title: "Звіт про завершення завдання",
+			centered: true,
+			content: (
+				<div>
+					<Input.TextArea
+						placeholder="Введіть ваш звіт"
+						onChange={onReportTextChange.bind(this)}
+					></Input.TextArea>
+				</div>
+			),
+			onOk: () => {
+				if (this.props.task !== undefined) {
+					ConnectionManager.getInstance().emit(
+						RequestType.FINISH_TASK,
+						{ id: this.props.task.id, report: report },
+						Store.getState().account.session
+					);
+				}
+			},
+		});
 	}
 
 	render() {

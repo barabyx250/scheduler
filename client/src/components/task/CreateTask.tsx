@@ -136,6 +136,7 @@ export const CreateTask: React.FC<Props> = () => {
 			status: TaskStatus.IN_PROGRESS,
 			dateComplited: new Date(),
 			periodParentId: 0,
+			report: { id: 0, content: "", dateCreation: new Date() },
 		};
 
 		ConnectionManager.getInstance().emit(
