@@ -1,3 +1,5 @@
+import { EMPTY_POSITION_ID } from "./constants";
+
 export class UserPosition {
 	pos_id: number;
 	name: string;
@@ -64,6 +66,14 @@ export class TreeUserPosition {
 				value: pos.pos_id.toString(),
 				children: childs.length === 0 ? undefined : childs,
 			});
+		const empty = this.findPossById(EMPTY_POSITION_ID);
+		if (empty.pos_id === EMPTY_POSITION_ID) {
+			resPositions.push({
+				title: empty.name,
+				value: empty.pos_id.toString(),
+				children: undefined,
+			});
+		}
 		return resPositions;
 	}
 

@@ -1,6 +1,9 @@
 import { UserEntity } from "../entities/user.entity";
 import { getConnection, getRepository, SelectQueryBuilder } from "typeorm";
-import { DEFAULT_NAME_DB_CONNECION } from "../types/constants";
+import {
+	DEFAULT_NAME_DB_CONNECION,
+	EMPTY_POSITION_ID,
+} from "../types/constants";
 import { User } from "../types/user";
 import { UserSessionEntity } from "../entities/session.entity";
 import { DBManager } from "./db_manager";
@@ -42,6 +45,12 @@ export class DBUserManager {
 			.where("user.login = :login", { login })
 			.getOne();
 		return user;
+	}
+
+	public static async GetAllUsers(): Promise<UserEntity[]> {
+		return DBUserManager.applyUserInnerJoins(
+			getRepository(UserEntity).createQueryBuilder("user")
+		).getMany();
 	}
 
 	public static async GetUserById(id: number): Promise<UserEntity | undefined> {
@@ -159,6 +168,20 @@ export class DBUserManager {
 		}
 	}
 
+	public static async CreateEmptyPosition() {
+		(await DBManager.get())
+			.getConnection()
+			.getRepository(UserPositionEntity)
+			.save({
+				id: EMPTY_POSITION_ID,
+				pos_id: EMPTY_POSITION_ID,
+				name: "Відсутня",
+				parent: {
+					id: EMPTY_POSITION_ID,
+				},
+			});
+	}
+
 	public static async UpdateUserInfo(user: UserEntity) {
 		(await DBManager.get())
 			.getConnection()
@@ -169,6 +192,14 @@ export class DBUserManager {
 				middleName: user.middleName,
 				secondName: user.secondName,
 				password: user.password,
+				position: user.position,
 			});
+	}
+
+	public static async RemoveUserPosition(posId: number) {
+		(await DBManager.get())
+			.getConnection()
+			.getRepository(UserPositionEntity)
+			.delete(posId);
 	}
 }

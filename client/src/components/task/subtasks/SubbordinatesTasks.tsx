@@ -74,9 +74,6 @@ export const SubbordinatesTasks: React.FC = () => {
 			accState.session
 		);
 	}
-	// if (myTaskState.length === 0) {
-	// 	return <Empty style={{ paddingTop: "10%" }} />;
-	// }
 
 	return (
 		<div>
@@ -91,6 +88,7 @@ export const SubbordinatesTasks: React.FC = () => {
 				{subbordinatesState.map((user) => {
 					return (
 						<Option key={user.id} value={user.id}>
+							{user.position.name}:
 							{user.secondName + " " + user.middleName + " " + user.firstName}
 						</Option>
 					);

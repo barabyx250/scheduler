@@ -108,6 +108,9 @@ export class TaskDrawer extends React.Component<
 			>
 				<div>
 					<Title level={2}>{this.props?.task?.title}</Title>
+					{this.props.task?.isPrivate && (
+						<Text>ПРИВАТНЕ ЗАВДАННЯ (БАЧИТЕ ТІЛЬКИ ВИ)</Text>
+					)}
 					<Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "далі" }}>
 						<Text strong>Опис: </Text>
 						{this.props?.task?.description}
@@ -132,7 +135,7 @@ export class TaskDrawer extends React.Component<
 							icon={<CheckOutlined />}
 							onClick={this.onTaskFinish.bind(this)}
 						>
-							Закінчити
+							Звітувати про виконання
 						</Button>
 					)}
 				</div>

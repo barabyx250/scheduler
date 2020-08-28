@@ -318,11 +318,11 @@ export class NotificationModel {
 			const tommorowDateStart = startOfTomorrow();
 			const tommorowDateEnd = endOfTomorrow();
 
-			console.log(
-				"GET TASK BETWEEN DATES: ",
-				tommorowDateStart,
-				tommorowDateEnd
-			);
+			// console.log(
+			// 	"GET TASK BETWEEN DATES: ",
+			// 	tommorowDateStart,
+			// 	tommorowDateEnd
+			// );
 
 			const tasks = await DBTaskManager.GetTasksStartBetweenDates(
 				tommorowDateStart,

@@ -4,6 +4,7 @@ import * as http from "http";
 import { DBManager } from "./managers/db_manager";
 import { RequestManager } from "./request-manager";
 import { NotificationModel } from "./model/notification.model";
+import { UserModel } from "./model/user.model";
 
 export class ServerManager {
 	public static readonly PORT: number = 8081;
@@ -21,6 +22,7 @@ export class ServerManager {
 		DBManager.get().then(() => {
 			NotificationModel.StartTaskProgressNotification(this.io);
 			NotificationModel.StartTomorrowTaskNotification(this.io);
+			UserModel.checkInstallEmptyPosition();
 		});
 	}
 

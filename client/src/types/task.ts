@@ -30,7 +30,8 @@ export class Task {
 		public status: TaskStatus,
 		public dateComplited: Date,
 		public periodParentId: number,
-		public report: TaskReport
+		public report: TaskReport,
+		public isPrivate: boolean
 	) {}
 }
 

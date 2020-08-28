@@ -6,6 +6,7 @@ import { TimersManager } from "../../../managers/timersManager";
 
 export enum UserMenuPath {
 	SETTINGS = "/user/settings",
+	FAQ = "/user/faq",
 }
 
 export class UserMenu extends React.Component<{
@@ -28,6 +29,9 @@ export class UserMenu extends React.Component<{
 								<Typography.Link href={UserMenuPath.SETTINGS}>
 									Мої налаштування
 								</Typography.Link>
+							</Menu.Item>
+							<Menu.Item>
+								<Typography.Link href={UserMenuPath.FAQ}>FAQ</Typography.Link>
 							</Menu.Item>
 							<Menu.Item danger onClick={this.onQuitClick}>
 								Вийти

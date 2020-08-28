@@ -28,6 +28,7 @@ export class DBTaskManager {
 	public static async CreateTask(task: Task): Promise<TaskEntity | undefined> {
 		const author = await DBUserManager.GetUserById(task.authorId);
 		const executer = await DBUserManager.GetUserById(task.executerId);
+		const flags = await DBTaskManager.CreateTaskFlags(task.isPrivate);
 
 		const newTask = await (await DBManager.get())
 			.getConnection()
@@ -41,7 +42,7 @@ export class DBTaskManager {
 				endDate: task.endDate,
 				userAuthor: author,
 				userExecuter: executer,
-				flags: await DBTaskManager.CreateTaskFlags(),
+				flags: flags,
 				periodParentId: task.periodParentId,
 				report: await DBTaskManager.CreateTaskReport(),
 			});
@@ -59,26 +60,25 @@ export class DBTaskManager {
 		return task;
 	}
 
-	public static async GetTasksByPeriodParentId(
-		pid: number,
-		selectRemoved: boolean = false,
-		selectUnremoved: boolean = true
+	public static async GetAllTasksByPeriodParentId(
+		pid: number
 	): Promise<TaskEntity[]> {
 		const tasks = DBTaskManager.applyUserInnerJoins(
 			getRepository(TaskEntity).createQueryBuilder("task")
 		)
 			.where("task.periodParentId = :pid", { pid })
-			.andWhere("flags.isRemoved = :b", { b: selectRemoved })
-			.andWhere("flags.isRemoved = :b", { b: selectUnremoved })
 			.getMany();
 		return tasks;
 	}
 
-	public static async CreateTaskFlags(): Promise<TaskFlagsEntity | undefined> {
+	public static async CreateTaskFlags(
+		isPrivate: boolean = false
+	): Promise<TaskFlagsEntity | undefined> {
 		const taskFlags = getRepository(TaskFlagsEntity).save({
 			isFifteenPrecentProgress: false,
 			isTenPrecentProgress: false,
 			isTwentyFivePrecentProgress: false,
+			isPrivate: isPrivate,
 		});
 		return taskFlags;
 	}

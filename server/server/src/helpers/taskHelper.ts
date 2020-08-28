@@ -1,6 +1,8 @@
 import { TaskPeriod, Task } from "../types/task";
 import { addMonths, addYears } from "date-fns";
 import { TaskEntity } from "../entities/task.entity";
+import { TaskFilters } from "../types/taskFilter";
+import { fi } from "date-fns/locale";
 
 export function generatePeriodTasks(task: Task): Task[] {
 	const periodTasks: Task[] = [];
@@ -45,4 +47,45 @@ export function ifTaskBetweenDates(
 
 	const result: boolean = (oneStart && twoStart) || (oneEnd && twoEnd);
 	return result;
+}
+
+export function filterTask(filter: TaskFilters, task: Task): boolean {
+	if (filter.status !== undefined && filter.status !== task.status) {
+		return false;
+	}
+
+	if (filter.nameReg !== undefined && !task.title.match(filter.nameReg)) {
+		return false;
+	}
+
+	if (
+		filter.authorIds !== undefined &&
+		filter.authorIds.findIndex((aid) => aid === task.authorId) < 0
+	) {
+		return false;
+	}
+
+	if (
+		filter.executorIds !== undefined &&
+		filter.executorIds.findIndex((eid) => eid === task.executerId) < 0
+	) {
+		return false;
+	}
+
+	if (filter.private !== undefined && filter.private !== task.isPrivate) {
+		return false;
+	}
+
+	if (
+		filter.betweenDates !== undefined &&
+		!ifTaskBetweenDates(
+			filter.betweenDates.start,
+			filter.betweenDates.end,
+			task
+		)
+	) {
+		return false;
+	}
+
+	return true;
 }

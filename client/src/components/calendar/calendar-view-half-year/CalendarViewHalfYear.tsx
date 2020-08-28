@@ -1,6 +1,6 @@
 import React from "react";
 import { Task, TaskPriority, TaskStatus } from "../../../types/task";
-import { Typography, Empty, Col, Row, Button } from "antd";
+import { Typography, Empty, Col, Row, Button, Tooltip } from "antd";
 import Timeline, {
 	TimelineHeaders,
 	DateHeader,
@@ -17,7 +17,7 @@ import {
 } from "../../../types/requests";
 import Store from "../../../app/store";
 import { User } from "../../../types/user";
-import { addMonths, addDays } from "date-fns";
+import { addMonths, addDays, addHours } from "date-fns";
 import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
 import {
 	formatDateForDisplayTasks,
@@ -26,6 +26,7 @@ import {
 } from "../../../helpers/taskHelper";
 import { ArrowLeftOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
+import { startOfDay } from "date-fns/esm";
 
 const { Text } = Typography;
 
@@ -172,9 +173,50 @@ export class CalendarViewHalfYear extends React.Component<
 			markers.push(
 				<CustomMarker date={currDate}>
 					{({ styles, date }) => {
-						styles.backgroundColor = bgColor;
-						styles.width = width;
-						return <div style={styles}></div>;
+						const st: React.CSSProperties = styles;
+						st.backgroundColor = bgColor;
+						st.width = width;
+						st.pointerEvents = "auto";
+						return (
+							// <Tooltip title={new Date(date).getDate()}>
+							<div style={st}></div>
+							// </Tooltip>
+						);
+					}}
+				</CustomMarker>
+			);
+		}
+		return markers;
+	}
+
+	generateTooltipCustomsMarkers(start: Date, end: Date) {
+		let markers: JSX.Element[] = [];
+		let currDate: Date = startOfDay(start); //new Date(start);
+		currDate.setMinutes(30);
+		markers.push(
+			<CustomMarker date={currDate}>
+				{({ styles, date }) => {
+					return <div style={styles} />;
+				}}
+			</CustomMarker>
+		);
+		while (currDate < end) {
+			currDate = addHours(currDate, 20); //addDays(currDate, 1);
+
+			let width = "2px";
+
+			markers.push(
+				<CustomMarker date={currDate}>
+					{({ styles, date }) => {
+						const st: React.CSSProperties = styles;
+						st.width = width;
+						st.pointerEvents = "auto";
+						st.backgroundColor = "transparent";
+						return (
+							<Tooltip title={new Date(date).toLocaleDateString("uk")}>
+								<div style={st}></div>
+							</Tooltip>
+						);
 					}}
 				</CustomMarker>
 			);
@@ -222,15 +264,10 @@ export class CalendarViewHalfYear extends React.Component<
 	}
 
 	render() {
-		console.log(this.state);
-
 		if (this.state === null) return <div></div>;
 
 		//const [start, end] = this.getStartEndHalfOfYear();
-		console.log("Months: ", this.state.start, this.state.end);
-		// Store.dispatch(
-		// 	setGetTaskDateInterval({ from: this.state.start, to: this.state.end })
-		// );
+		//console.log("Months: ", this.state.start, this.state.end);
 
 		const items: TimeLineItem[] = this.props.tasks
 			.filter((item) => {
@@ -397,6 +434,10 @@ export class CalendarViewHalfYear extends React.Component<
 							}}
 						</TodayMarker>
 						{this.generateCustomsMarkers(this.state.start, this.state.end)}
+						{/* {this.generateTooltipCustomsMarkers(
+							this.state.start,
+							this.state.end
+						)} */}
 					</Timeline>
 				)}
 				<TaskDrawer {...this.state?.taskDrawer}></TaskDrawer>

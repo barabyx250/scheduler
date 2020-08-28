@@ -7,11 +7,13 @@ import {
 import { UserModel } from "./model/user.model";
 import { TaskModel } from "./model/task.model";
 import { Task, TaskReport } from "./types/task";
-import { logDev } from "./logger/config";
+import { logDev, LoggerInstanse } from "./logger/config";
 import { User } from "./types/user";
 import { DBUserManager } from "./managers/db_user_manager";
 import { UserPosition } from "./types/userPosition";
 import { NotificationModel } from "./model/notification.model";
+import { TaskFilters } from "./types/taskFilter";
+import HashStatic from "object-hash";
 
 export class RequestManager {
 	public static m_sessionSocket: Map<string, string> = new Map<
@@ -19,12 +21,29 @@ export class RequestManager {
 		string
 	>();
 
+	public static makeid(length: number): string {
+		var result = "";
+		var characters =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		var charactersLength = characters.length;
+		for (var i = 0; i < length; i++) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	}
+
 	public static on(socket: SocketIO.Socket, io: SocketIO.Server) {
 		socket.use((packet: SocketIO.Packet, next: any) => {
 			if (packet[1].session !== undefined) {
 				this.m_sessionSocket.set(packet[1].session, socket.id);
 			}
-			logDev.info(`REQUEST: ${packet[0]} : ${JSON.stringify(packet)}`);
+			packet[1].id = (this.makeid(5) + ":" + this.makeid(8)).toUpperCase();
+			LoggerInstanse.linfo(`REQUEST:`, {
+				requestType: packet[0],
+				requesId: packet[1].id,
+				requestData: packet,
+			});
+
 			return next();
 		});
 
@@ -35,12 +54,15 @@ export class RequestManager {
 				request.data.password
 			);
 
-			socket.emit(RequestType.LOGIN, response);
+			this.emit(RequestType.LOGIN, response, socket, m);
 		});
 
 		socket.on(RequestType.CREATE_TASK, async (m: any) => {
 			const response = await TaskModel.createTask(m);
-			if (response.requestCode === ResponseCode.RES_CODE_SUCCESS) {
+			if (
+				response.requestCode === ResponseCode.RES_CODE_SUCCESS &&
+				response.data.isPrivate !== true
+			) {
 				NotificationModel.SendCreateTaskNotification(
 					response.data.executerId,
 					response.data.id,
@@ -48,116 +70,168 @@ export class RequestManager {
 				);
 			}
 
-			socket.emit(RequestType.CREATE_TASK, response);
+			this.emit(RequestType.CREATE_TASK, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_MY_TASKS, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_MY_TASKS, {
-					data: [],
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<Task[]>);
+				this.emit(
+					RequestType.GET_MY_TASKS,
+					{
+						data: [],
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<Task[]>,
+					socket,
+					m
+				);
 				return;
 			}
 			const response = await TaskModel.getTasksByExecuter(m);
-			socket.emit(RequestType.GET_MY_TASKS, response);
+			this.emit(RequestType.GET_MY_TASKS, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_USERS_INFO, async (m: any) => {
 			if ((m as RequestMessage<Array<number>>).session === "") {
-				socket.emit(RequestType.GET_USERS_INFO, {
-					data: [],
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<Task[]>);
+				this.emit(
+					RequestType.GET_USERS_INFO,
+					{
+						data: [],
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<Task[]>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await UserModel.getUsersByIds(m);
-			socket.emit(RequestType.GET_USERS_INFO, response);
+			this.emit(RequestType.GET_USERS_INFO, response, socket, m);
 		});
 
-		socket.on(RequestType.GET_USER_POSITIONS, async (m: any) => {
-			if ((m as RequestMessage<Array<any>>).session === "") {
-				socket.emit(RequestType.GET_USER_POSITIONS, {
-					data: [],
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<Array<any>>);
-				return;
+		socket.on(
+			RequestType.GET_USER_POSITIONS,
+			async (m: RequestMessage<Array<any>>) => {
+				if (m.session === "") {
+					this.emit(
+						RequestType.GET_USER_POSITIONS,
+						{
+							data: [],
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<Array<any>>,
+						socket,
+						m
+					);
+					return;
+				}
+
+				const response = await UserModel.getUserPositions(m);
+				this.emit(RequestType.GET_USER_POSITIONS, response, socket, m);
 			}
-
-			const response = await UserModel.getUserPositions(m);
-			socket.emit(RequestType.GET_USER_POSITIONS, response);
-		});
+		);
 
 		socket.on(RequestType.CREATE_USER, async (m: any) => {
 			if ((m as RequestMessage<User>).session === "") {
-				socket.emit(RequestType.CREATE_USER, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.CREATE_USER,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await UserModel.createUser(m);
-			socket.emit(RequestType.CREATE_USER, response);
+			this.emit(RequestType.CREATE_USER, response, socket, m);
 		});
 
-		socket.on(RequestType.GET_MY_SUBORDINATE, async (m: any) => {
-			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_MY_SUBORDINATE, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
-				return;
-			}
-			const user = await DBUserManager.GetUserBySession(m.session);
+		socket.on(
+			RequestType.GET_MY_SUBORDINATE,
+			async (m: RequestMessage<any>) => {
+				if (m.session === "") {
+					this.emit(
+						RequestType.GET_MY_SUBORDINATE,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
+					return;
+				}
+				const user = await DBUserManager.GetUserBySession(m.session);
 
-			if (user !== undefined) {
-				const response = await UserModel.getSubordinates(
-					user.ToRequestObject()
+				if (user !== undefined) {
+					const response = await UserModel.getSubordinates(
+						user.ToRequestObject()
+					);
+
+					this.emit(
+						RequestType.GET_MY_SUBORDINATE,
+						{
+							data: response,
+							requestCode: ResponseCode.RES_CODE_SUCCESS,
+							session: m.session,
+						} as RequestMessage<User[]>,
+						socket,
+						m
+					);
+				}
+
+				this.emit(
+					RequestType.GET_MY_SUBORDINATE,
+					{
+						id: m.id,
+						data: [],
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						session: m.session,
+					} as RequestMessage<User[]>,
+					socket,
+					m
 				);
-
-				socket.emit(RequestType.GET_MY_SUBORDINATE, {
-					data: response,
-					requestCode: ResponseCode.RES_CODE_SUCCESS,
-					session: m.session,
-				} as RequestMessage<User[]>);
 			}
-
-			socket.emit(RequestType.GET_MY_SUBORDINATE, {
-				data: [],
-				requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				session: m.session,
-			} as RequestMessage<User[]>);
-		});
+		);
 
 		socket.on(RequestType.GET_TASKS_SUBORDINATES, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_TASKS_SUBORDINATES, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.GET_TASKS_SUBORDINATES,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await TaskModel.getTasksBySubbordinates(m);
 
-			socket.emit(RequestType.GET_TASKS_SUBORDINATES, response);
+			this.emit(RequestType.GET_TASKS_SUBORDINATES, response, socket, m);
 		});
 
 		socket.on(RequestType.UPDATE_TASK, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.UPDATE_TASK, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.UPDATE_TASK,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
@@ -170,31 +244,41 @@ export class RequestManager {
 				);
 			}
 
-			socket.emit(RequestType.UPDATE_TASK, response);
+			this.emit(RequestType.UPDATE_TASK, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_TASKS_BY_ME, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_TASKS_BY_ME, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.GET_TASKS_BY_ME,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await TaskModel.getTasksByAuthor(m);
 
-			socket.emit(RequestType.GET_TASKS_BY_ME, response);
+			this.emit(RequestType.GET_TASKS_BY_ME, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_MY_NOTIFICATIONS, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_MY_NOTIFICATIONS, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.GET_MY_NOTIFICATIONS,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
@@ -202,73 +286,98 @@ export class RequestManager {
 			if (user !== undefined) {
 				const response = await NotificationModel.GetByRecipient(user.id);
 
-				socket.emit(RequestType.GET_MY_NOTIFICATIONS, response);
+				this.emit(RequestType.GET_MY_NOTIFICATIONS, response, socket, m);
 			}
 		});
 
 		socket.on(RequestType.READ_NOTIFICATIONS, async (m: any) => {
 			if ((m as RequestMessage<number[]>).session === "") {
-				socket.emit(RequestType.READ_NOTIFICATIONS, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.READ_NOTIFICATIONS,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await NotificationModel.Read(m.data);
-			socket.emit(RequestType.READ_NOTIFICATIONS, response);
+			this.emit(RequestType.READ_NOTIFICATIONS, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_TASKS_INFO, async (m: any) => {
 			if ((m as RequestMessage<number[]>).session === "") {
-				socket.emit(RequestType.GET_TASKS_INFO, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.GET_TASKS_INFO,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await TaskModel.getTasksInfo(m);
-			socket.emit(RequestType.GET_TASKS_INFO, response);
+			this.emit(RequestType.GET_TASKS_INFO, response, socket, m);
 		});
 
 		socket.on(RequestType.UPDATE_USER_POSITIONS, async (m: any) => {
 			if ((m as RequestMessage<UserPosition[]>).session === "") {
-				socket.emit(RequestType.UPDATE_USER_POSITIONS, {
-					data: {},
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<any>);
+				this.emit(
+					RequestType.UPDATE_USER_POSITIONS,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
 				return;
 			}
 
 			const response = await UserModel.updateUserPositions(m.data);
-			socket.emit(RequestType.UPDATE_USER_POSITIONS, response);
+			this.emit(RequestType.UPDATE_USER_POSITIONS, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_MY_PARENT_TASK, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_MY_PARENT_TASK, {
-					data: [],
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<Task[]>);
+				this.emit(
+					RequestType.GET_MY_PARENT_TASK,
+					{
+						data: [],
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<Task[]>,
+					socket,
+					m
+				);
 				return;
 			}
 			const response = await TaskModel.getTasksByExecuter(m);
 			response.data = response.data.filter((t) => t.periodParentId === t.id);
-			socket.emit(RequestType.GET_MY_PARENT_TASK, response);
+			this.emit(RequestType.GET_MY_PARENT_TASK, response, socket, m);
 		});
 
 		socket.on(RequestType.GET_COMPLITED_TASKS_BY_ME, async (m: any) => {
 			if ((m as RequestMessage<any>).session === "") {
-				socket.emit(RequestType.GET_COMPLITED_TASKS_BY_ME, {
-					data: [],
-					messageInfo: "Session is invalid",
-					requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-				} as ResponseMessage<Task[]>);
+				this.emit(
+					RequestType.GET_COMPLITED_TASKS_BY_ME,
+					{
+						data: [],
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<Task[]>,
+					socket,
+					m
+				);
 				return;
 			}
 			const response = await TaskModel.getComplitedTasksByExecuter(m);
@@ -278,22 +387,27 @@ export class RequestManager {
 					response.data.push(element);
 				}
 			});
-			socket.emit(RequestType.GET_COMPLITED_TASKS_BY_ME, response);
+			this.emit(RequestType.GET_COMPLITED_TASKS_BY_ME, response, socket, m);
 		});
 
 		socket.on(
 			RequestType.FINISH_TASK,
 			async (m: RequestMessage<{ id: number; report: TaskReport }>) => {
 				if (m.session === "") {
-					socket.emit(RequestType.FINISH_TASK, {
-						data: {},
-						messageInfo: "Session is invalid",
-						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
-					} as ResponseMessage<any>);
+					this.emit(
+						RequestType.FINISH_TASK,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
 					return;
 				}
-				const response = await TaskModel.finishTask(m.data.id, m.data.report);
-				socket.emit(RequestType.FINISH_TASK, response);
+				const response = await TaskModel.finishTask(m);
+				this.emit(RequestType.FINISH_TASK, response, socket, m);
 			}
 		);
 
@@ -301,15 +415,153 @@ export class RequestManager {
 			RequestType.UPDATE_USER_INFO,
 			async (m: RequestMessage<Array<User>>) => {
 				if (m.session === "") {
-					socket.emit(RequestType.UPDATE_USER_INFO, {
+					this.emit(
+						RequestType.UPDATE_USER_INFO,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
+					return;
+				}
+				const response = await UserModel.updateUsersInfo(m.data);
+				this.emit(RequestType.UPDATE_USER_INFO, response, socket, m);
+			}
+		);
+
+		socket.on(
+			RequestType.SELECT_MY_TASKS_BY_FILTER,
+			async (m: RequestMessage<TaskFilters>) => {
+				if (m.session === "") {
+					this.emit(
+						RequestType.SELECT_MY_TASKS_BY_FILTER,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
+					return;
+				}
+				const response = await TaskModel.selectMyTasksByFilter(m);
+				this.emit(RequestType.SELECT_MY_TASKS_BY_FILTER, response, socket, m);
+			}
+		);
+
+		socket.on(RequestType.GET_MY_CHIEF_INFO, async (m: RequestMessage<any>) => {
+			if (m.session === "") {
+				this.emit(
+					RequestType.GET_MY_CHIEF_INFO,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
+				return;
+			}
+			const response = await UserModel.getMyChiefsInfo(m);
+			this.emit(RequestType.GET_MY_CHIEF_INFO, response, socket, m);
+		});
+
+		socket.on(
+			RequestType.GET_MY_EDITABLE_TASKS,
+			async (m: RequestMessage<TaskFilters>) => {
+				if (m.session === "") {
+					this.emit(
+						RequestType.GET_MY_EDITABLE_TASKS,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
+					return;
+				}
+				const response = await TaskModel.getMyEditableTasks(m);
+				this.emit(RequestType.GET_MY_EDITABLE_TASKS, response, socket, m);
+			}
+		);
+
+		socket.on(RequestType.REMOVE_TASK, async (m: RequestMessage<number>) => {
+			if (m.session === "") {
+				this.emit(
+					RequestType.REMOVE_TASK,
+					{
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>,
+					socket,
+					m
+				);
+				return;
+			}
+			const response = await TaskModel.removeTask(m);
+			this.emit(
+				RequestType.REMOVE_TASK,
+				{
+					data: m.data,
+					messageInfo: "SUCCESS",
+					requestCode: ResponseCode.RES_CODE_SUCCESS,
+				} as ResponseMessage<number>,
+				socket,
+				m
+			);
+		});
+
+		socket.on(
+			RequestType.REMOVE_POSITIONS,
+			async (m: RequestMessage<number[]>) => {
+				if (m.session === "") {
+					this.emit(
+						RequestType.REMOVE_POSITIONS,
+						{
+							data: {},
+							messageInfo: "Session is invalid",
+							requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+						} as ResponseMessage<any>,
+						socket,
+						m
+					);
+					return;
+				}
+				const response = await UserModel.removeUserPositions(m);
+				this.emit(
+					RequestType.REMOVE_POSITIONS,
+					{
+						data: m.data,
+						messageInfo: "SUCCESS",
+						requestCode: ResponseCode.RES_CODE_SUCCESS,
+					} as ResponseMessage<number[]>,
+					socket,
+					m
+				);
+			}
+		);
+
+		socket.on(
+			RequestType.GET_ALL_USERS,
+			async (m: RequestMessage<number[]>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.GET_ALL_USERS, {
 						data: {},
 						messageInfo: "Session is invalid",
 						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
 					} as ResponseMessage<any>);
 					return;
 				}
-				const response = await UserModel.updateUsersInfo(m.data);
-				socket.emit(RequestType.UPDATE_USER_INFO, response);
+				const response = await UserModel.getAllUsers(m);
+				this.emit(RequestType.GET_ALL_USERS, response, socket, m);
 			}
 		);
 
@@ -322,6 +574,21 @@ export class RequestManager {
 					console.log("Removed disconnected: ", session, ":", socket_id);
 				}
 			}
+		});
+	}
+
+	public static emit<T>(
+		type: RequestType,
+		response: T,
+		socket: SocketIO.Socket,
+		request: RequestMessage<any>
+	) {
+		socket.emit(type, response);
+
+		LoggerInstanse.linfo(`RESPONSE:`, {
+			requestType: type,
+			reponseId: request.id,
+			reponseData: response,
 		});
 	}
 }

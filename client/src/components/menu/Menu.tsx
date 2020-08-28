@@ -1,5 +1,5 @@
 import { Layout, Menu } from "antd";
-import {
+import Icon, {
 	PieChartOutlined,
 	PlusCircleOutlined,
 	GroupOutlined,
@@ -8,6 +8,8 @@ import {
 	BranchesOutlined,
 	EditOutlined,
 	UserSwitchOutlined,
+	CheckOutlined,
+	ClusterOutlined,
 } from "@ant-design/icons";
 import React, { useState } from "react";
 import styles from "./menu.module.css";
@@ -26,9 +28,11 @@ import { SubbordinatesTasks } from "../task/subtasks/SubbordinatesTasks";
 import { EditTask } from "../task/edit-task/EditTask";
 import { Notification } from "../notifications/Notifcation";
 import { PositionsEditer } from "../positions.editer/PositionsEditer";
-import { TaskSelector } from "../task/task-selector/TaskSelector";
 import { ComplitedTasks } from "../task/complitedTasks/ComplitedTasks";
 import { UserSettings } from "../user/settings/UserSettings";
+import { UserEditerPage } from "../user/user.editer/UserEditer";
+import { FAQ } from "../faq/FAQ";
+import { PositionViewer } from "../user/position.viewer/PositionViewer";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -40,6 +44,10 @@ export enum MenuRoutes {
 	TASK_EDIT = "/menu/task/edit",
 	POSITIONS_EDIT = "/menu/positions/edit",
 	COMPLITED_TASKS = "/menu/task/selector",
+	USER_EDIT = "/menu/user/edit",
+	POSITION_VIEWER = "/menu/positions/view",
+
+	DIVIDER = "divider",
 }
 
 const routes = [
@@ -52,12 +60,20 @@ const routes = [
 		content: "Мої задачі",
 	},
 	{
-		key: "1",
-		path: MenuRoutes.CREATE_USERS,
-		name: "CreateUser",
-		Component: CreateUserPage,
-		icon: <UserAddOutlined />,
-		content: "Створити користувача",
+		key: "3",
+		path: MenuRoutes.SUBBORDINATES_TASK,
+		name: "SubordinatesTasks",
+		Component: SubbordinatesTasks,
+		icon: <BranchesOutlined />,
+		content: "Задачі підлеглих",
+	},
+	{
+		key: "6",
+		path: MenuRoutes.COMPLITED_TASKS,
+		name: "ComplitedTasks",
+		Component: ComplitedTasks,
+		icon: <CheckOutlined />,
+		content: "Завершені задачі",
 	},
 	{
 		key: "2",
@@ -68,14 +84,6 @@ const routes = [
 		content: "Створити задачу",
 	},
 	{
-		key: "3",
-		path: MenuRoutes.SUBBORDINATES_TASK,
-		name: "SubordinatesTasks",
-		Component: SubbordinatesTasks,
-		icon: <BranchesOutlined />,
-		content: "Задачі підлеглих",
-	},
-	{
 		key: "4",
 		path: MenuRoutes.TASK_EDIT,
 		name: "TaskEdit",
@@ -84,20 +92,52 @@ const routes = [
 		content: "Редагувати задачу",
 	},
 	{
+		key: "5001",
+		path: MenuRoutes.DIVIDER,
+		name: "DIVIDER",
+		Component: MyTasks,
+		icon: <CheckOutlined />,
+		content: "",
+	},
+	{
+		key: "1",
+		path: MenuRoutes.CREATE_USERS,
+		name: "CreateUser",
+		Component: CreateUserPage,
+		icon: <UserAddOutlined />,
+		content: "Створити користувача",
+	},
+	{
+		key: "7",
+		path: MenuRoutes.USER_EDIT,
+		name: "UserEdit",
+		Component: UserEditerPage,
+		icon: <UserSwitchOutlined />,
+		content: "Редагувати користувачів",
+	},
+	{
+		key: "5001",
+		path: MenuRoutes.DIVIDER,
+		name: "DIVIDER",
+		Component: MyTasks,
+		icon: <CheckOutlined />,
+		content: "",
+	},
+	{
+		key: "8",
+		path: MenuRoutes.POSITION_VIEWER,
+		name: "PositionViewer",
+		Component: PositionViewer,
+		icon: <ClusterOutlined />,
+		content: "Посади",
+	},
+	{
 		key: "5",
 		path: MenuRoutes.POSITIONS_EDIT,
 		name: "PositionsEdit",
 		Component: PositionsEditer,
 		icon: <UserSwitchOutlined />,
 		content: "Редагувати посади",
-	},
-	{
-		key: "6",
-		path: MenuRoutes.COMPLITED_TASKS,
-		name: "ComplitedTasks",
-		Component: ComplitedTasks,
-		icon: <UserSwitchOutlined />,
-		content: "Завершені задачі",
 	},
 ];
 
@@ -138,12 +178,17 @@ export const MainMenu: React.FC = () => {
 							if (accState.role === UserRole.USER) {
 								return (
 									path !== MenuRoutes.CREATE_USERS &&
-									path !== MenuRoutes.POSITIONS_EDIT
+									path !== MenuRoutes.POSITIONS_EDIT &&
+									path !== MenuRoutes.USER_EDIT
 								);
 							}
 							return true;
 						})
 						.map(({ key, path, icon, content }) => {
+							if (path === MenuRoutes.DIVIDER) {
+								return <Menu.Divider></Menu.Divider>;
+							}
+
 							return (
 								<MenuItem key={path} icon={icon} onClick={onMyTaskClick}>
 									<NavLink to={path}>{content}</NavLink>
@@ -188,37 +233,43 @@ export const MainMenu: React.FC = () => {
 						className="site-layout-background"
 						style={{ width: "100%", height: "100%", position: "relative" }}
 					>
-						{routes.map(({ path, Component }) => (
-							<Route key={path} exact path={path}>
-								{({ match }) => {
-									return (
-										<div
-											style={{
-												position: "absolute",
-												width: "100%",
-											}}
-										>
-											<CSSTransition
-												in={match !== null}
-												timeout={400}
-												classNames="my-node"
-												onEnter={() => console.log("Enter")}
-												onExited={() => console.log("Exit")}
-												unmountOnExit
+						{routes
+							.filter(({ path }) => path !== MenuRoutes.DIVIDER)
+							.map(({ path, Component }) => (
+								<Route key={path} exact path={path}>
+									{({ match }) => {
+										return (
+											<div
+												style={{
+													position: "absolute",
+													width: "100%",
+												}}
 											>
-												<Component />
-											</CSSTransition>
-										</div>
-									);
-								}}
-							</Route>
-						))}
+												<CSSTransition
+													in={match !== null}
+													timeout={400}
+													classNames="my-node"
+													onEnter={() => console.log("Enter")}
+													onExited={() => console.log("Exit")}
+													unmountOnExit
+												>
+													<Component />
+												</CSSTransition>
+											</div>
+										);
+									}}
+								</Route>
+							))}
 						<Route
 							key={UserMenuPath.SETTINGS}
 							exact
 							path={UserMenuPath.SETTINGS}
 						>
 							<UserSettings></UserSettings>
+						</Route>
+
+						<Route key={UserMenuPath.FAQ} exact path={UserMenuPath.FAQ}>
+							<FAQ></FAQ>
 						</Route>
 					</div>
 				</Content>

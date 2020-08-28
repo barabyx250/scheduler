@@ -11,6 +11,11 @@ import {
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
 import { title } from "process";
+import { TimersManager } from "../../../managers/timersManager";
+import {
+	CALLBACK_UPDATE_MY_TASK,
+	CALLBACK_GET_COMPLITED_MY_TASK,
+} from "../../../types/constants";
 
 const { Text, Link } = Typography;
 
@@ -133,68 +138,35 @@ interface TaskTableData {
 	taskAuthor?: User;
 }
 
-interface TaskSelectorProps {
+interface TableTaskProps {
 	tasks: Task[];
+	users: User[];
 }
 
-export const TaskSelector: React.FC<TaskSelectorProps> = (
-	props: TaskSelectorProps
-) => {
+export const TableTask: React.FC<TableTaskProps> = (props: TableTaskProps) => {
 	const accState = useSelector(selectAccount);
-	const [tableData, setTableData] = useState<TaskTableData[]>([]);
-	useEffect(() => {
-		ConnectionManager.getInstance().registerResponseOnceHandler(
-			RequestType.GET_USERS_INFO,
-			(data) => {
-				const dataMessage = data as ResponseMessage<Array<User>>;
-				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
-					console.log(`Error: ${dataMessage.requestCode}`);
-					return;
-				}
+	//const [tableData, setTableData] = useState<TaskTableData[]>([]);
 
-				console.log("GOT USERS", data);
-				const getUserPIB = (id: number) => {
-					const user = dataMessage.data.find((u) => u.id === id);
-					return User.GetUserPIB(user);
-				};
+	const getUserPIB = (id: number) => {
+		const user = props.users.find((u) => u.id === id);
+		return User.GetUserPIB(user);
+	};
 
-				setTableData(
-					props.tasks.map((element) => {
-						return {
-							title: element.title,
-							author: getUserPIB(element.authorId),
-							executer: getUserPIB(element.executerId),
-							dateComplited: new Date(element.dateComplited),
-							isComplited:
-								element.status === TaskStatus.COMPLITED ? "Так" : "Ні",
-							priority: element.priority,
-							task: element,
-							taskAuthor: dataMessage.data.find(
-								(u) => u.id === element.authorId
-							),
-							taskExecuter: dataMessage.data.find(
-								(u) => u.id === element.executerId
-							),
-						};
-					})
-				);
-			}
-		);
+	const tableData = props.tasks.map((element) => {
+		return {
+			title: element.title,
+			author: getUserPIB(element.authorId),
+			executer: getUserPIB(element.executerId),
+			dateComplited: new Date(element.dateComplited),
+			isComplited: element.status === TaskStatus.COMPLITED ? "Так" : "Ні",
+			priority: element.priority,
+			task: element,
+			taskAuthor: props.users.find((u) => u.id === element.authorId),
+			taskExecuter: props.users.find((u) => u.id === element.executerId),
+		};
+	});
 
-		const userId: number[] = [];
-		props.tasks.forEach((element) => {
-			userId.push(element.executerId);
-			userId.push(element.authorId);
-		});
-
-		ConnectionManager.getInstance().emit(
-			RequestType.GET_USERS_INFO,
-			userId.filter(function (elem, pos, arr) {
-				return arr.indexOf(elem) === pos;
-			}),
-			accState.session
-		);
-	}, []);
+	console.log("Table data", tableData);
 
 	return (
 		<div>

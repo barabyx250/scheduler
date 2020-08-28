@@ -75,7 +75,6 @@ export const MyTasks: React.FC = () => {
 	if (myTaskState.length === 0) {
 		return <Empty style={{ paddingTop: "10%" }} />;
 	}
-	console.log("TEST TES", changedAnimation);
 
 	return (
 		<div>

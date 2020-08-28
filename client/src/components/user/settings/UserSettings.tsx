@@ -198,7 +198,11 @@ export const UserSettings: React.FC = () => {
 								{userInfo.login}
 							</Paragraph>
 						</Descriptions.Item>
-						<Descriptions.Item label="Фамілія" span={3} className="description">
+						<Descriptions.Item
+							label="Прізвище"
+							span={3}
+							className="description"
+						>
 							<Paragraph
 								editable={{
 									onChange: onChangeNames.bind(null, StringChangeType.SECOND),
@@ -209,7 +213,7 @@ export const UserSettings: React.FC = () => {
 							</Paragraph>
 						</Descriptions.Item>
 						<Descriptions.Item
-							label="По-батькові"
+							label="По батькові"
 							className="description"
 							span={2}
 						>

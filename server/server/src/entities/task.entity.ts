@@ -87,6 +87,7 @@ export class TaskEntity {
 			status: this.status,
 			periodParentId: this.periodParentId,
 			report: this.report.ToRequestObject(),
+			isPrivate: this.flags ? this.flags.isPrivate : false,
 		};
 	}
 }

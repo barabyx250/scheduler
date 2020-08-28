@@ -28,5 +28,8 @@ export class TaskFlagsEntity {
 	isNotificationForStartWas: boolean;
 
 	@Column({ default: false })
+	isPrivate: boolean;
+
+	@Column({ default: false })
 	isRemoved: boolean;
 }

@@ -1,9 +1,10 @@
-import * as socketIo from "socket.io-client";
+import io from "socket.io-client";
 import {
 	RequestType,
 	ResponseMessage,
 	RequestMessage,
 } from "../../types/requests";
+import { BUILD_MODE, BuildMode } from "../../types/constants";
 
 export class ConnectionManager {
 	private static instance: ConnectionManager;
@@ -18,16 +19,27 @@ export class ConnectionManager {
 	public static getInstance(): ConnectionManager {
 		if (!ConnectionManager.instance) {
 			ConnectionManager.instance = new ConnectionManager(
-				socketIo.connect("http://localhost:8081")
+				io(
+					BUILD_MODE === BuildMode.RELEASE
+						? "http://10.19.20.252:8081"
+						: "http://localhost:8081"
+				)
 			);
 		}
 
 		return ConnectionManager.instance;
 	}
 
-	public emit(requestType: RequestType, data: any, session: string) {
+	public emit(
+		requestType: RequestType,
+		data: any,
+		session: string,
+		stackToQueue: boolean = false
+	) {
+		// if (this.m_socket.connected || stackToQueue) {
 		const request = new RequestMessage<typeof data>(session, requestType, data);
 		this.m_socket.emit(requestType, request);
+		// }
 	}
 
 	public registerResponseOnceHandler(

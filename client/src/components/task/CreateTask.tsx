@@ -9,6 +9,7 @@ import {
 	ConfigProvider,
 	Modal,
 	Result,
+	Switch,
 } from "antd";
 import { Store } from "antd/lib/form/interface";
 import FormLocale from "antd/es/locale/uk_UA";
@@ -30,6 +31,7 @@ import {
 	formatDateForStartDate,
 	formatDateForEndDate,
 } from "../../helpers/taskHelper";
+import { UserPosition } from "../../types/userPosition";
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -54,6 +56,9 @@ export const CreateTask: React.FC<Props> = () => {
 	const [subordinatesState, setSubordinatesState] = useState<User[]>([
 		accState,
 	]);
+	const [privateTaskSwitchEnabled, setPrivateTaskSwitchEnabled] = useState<
+		boolean
+	>(false);
 	const [form] = Form.useForm();
 
 	useEffect(() => {
@@ -81,15 +86,44 @@ export const CreateTask: React.FC<Props> = () => {
 		labelCol: { span: 8 },
 		wrapperCol: { span: 16 },
 	};
-	const usersExecuters = subordinatesState.map((u) => {
-		if (u.id === accState.id) {
-			return { id: accState.id, name: "Я" };
+	const usersGroupExecuters: Map<UserPosition, Array<User>> = new Map<
+		UserPosition,
+		Array<User>
+	>();
+
+	subordinatesState.forEach((u) => {
+		const isContain =
+			Array.from(usersGroupExecuters).findIndex(
+				(value) => value[0].pos_id === u.position.pos_id
+			) >= 0;
+
+		if (isContain) {
+			usersGroupExecuters.forEach((value, key) => {
+				if (key.pos_id === u.position.pos_id) {
+					value.push(u);
+				}
+			});
+		} else {
+			usersGroupExecuters.set(u.position, [u]);
 		}
-		return {
-			id: u.id,
-			name: u.secondName + " " + u.middleName + " " + u.firstName,
-		};
 	});
+
+	if (
+		Array.from(usersGroupExecuters).findIndex(
+			(value) => value[0].pos_id === accState.position.pos_id
+		) < 0
+	) {
+		usersGroupExecuters.set(accState.position, [accState]);
+	} else {
+		usersGroupExecuters.forEach((value, key) => {
+			if (key.pos_id === accState.position.pos_id) {
+				if (value.findIndex((u) => u.id === accState.id) < 0) {
+					value.push(accState);
+				}
+			}
+		});
+	}
+
 	const taskPriorities = [
 		{ value: TaskPriority.USUAL, name: "Звичайний" },
 		{ value: TaskPriority.YELLOW, name: "Важливий" },
@@ -121,6 +155,7 @@ export const CreateTask: React.FC<Props> = () => {
 					content: "Задача була успішно створена",
 				});
 				form.resetFields();
+				setPrivateTaskSwitchEnabled(false);
 			}
 		);
 		const task: Task = {
@@ -137,6 +172,7 @@ export const CreateTask: React.FC<Props> = () => {
 			dateComplited: new Date(),
 			periodParentId: 0,
 			report: { id: 0, content: "", dateCreation: new Date() },
+			isPrivate: privateTaskSwitchEnabled ? data.private : false,
 		};
 
 		ConnectionManager.getInstance().emit(
@@ -148,6 +184,14 @@ export const CreateTask: React.FC<Props> = () => {
 
 	const handleModalOk = () => {
 		setModalState({ visible: false, content: "", title: "" });
+	};
+
+	const handleExecutorSelect = (u_id: number) => {
+		if (accState.id === u_id) {
+			setPrivateTaskSwitchEnabled(true);
+		} else {
+			setPrivateTaskSwitchEnabled(false);
+		}
 	};
 
 	return (
@@ -199,12 +243,26 @@ export const CreateTask: React.FC<Props> = () => {
 							{ required: true, message: "Будь-ласка, оберіть виконавця!" },
 						]}
 					>
-						<Select>
-							{usersExecuters.map((user) => {
-								return (
-									<Select.Option value={user.id}>{user.name}</Select.Option>
-								);
-							})}
+						<Select onChange={handleExecutorSelect}>
+							{Array.from(usersGroupExecuters).map(
+								(value: [UserPosition, User[]]) => {
+									return (
+										<Select.OptGroup label={value[0].name}>
+											{value[1].map((v) => {
+												if (v.id === accState.id) {
+													return <Select.Option value={v.id}>Я</Select.Option>;
+												}
+
+												return (
+													<Select.Option value={v.id}>
+														{User.GetUserPIB(v)}
+													</Select.Option>
+												);
+											})}
+										</Select.OptGroup>
+									);
+								}
+							)}
 						</Select>
 					</Form.Item>
 					<Form.Item
@@ -280,6 +338,23 @@ export const CreateTask: React.FC<Props> = () => {
 								return <Radio.Button value={tp.value}>{tp.name}</Radio.Button>;
 							})}
 						</Radio.Group>
+					</Form.Item>
+					<Form.Item
+						style={{
+							visibility: privateTaskSwitchEnabled ? "visible" : "hidden",
+						}}
+						label="Особисте завдання"
+						name="private"
+					>
+						<Switch
+							style={{
+								display: "flex",
+								flexDirection: "row",
+								justifyContent: "flex-start",
+								width: "auto",
+							}}
+							disabled={!privateTaskSwitchEnabled}
+						/>
 					</Form.Item>
 					<Form.Item
 						style={{

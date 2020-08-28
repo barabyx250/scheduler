@@ -20,6 +20,12 @@ export enum RequestType {
 	GET_COMPLITED_TASKS_BY_ME = "get_complited_tasks_by_me",
 	GET_COMPLITED_TASKS_BY_SUBORDINATES = "get_complited_tasks_by_subordinates", //TODO - NOT EMITED
 	UPDATE_USER_INFO = "update_user_info",
+	SELECT_MY_TASKS_BY_FILTER = "select_my_task_by_filter",
+	GET_MY_CHIEF_INFO = "get_my_chief_info",
+	GET_MY_EDITABLE_TASKS = "get_my_editable_tasks",
+	REMOVE_TASK = "remove_task",
+	REMOVE_POSITIONS = "remove_positions",
+	GET_ALL_USERS = "get_all_users",
 }
 
 export enum ResponseCode {
@@ -43,8 +49,10 @@ export class RequestMessage<T> {
 		this.data = data;
 		this.session = session;
 		this.requestCode = requestCode;
+		this.id = "";
 	}
 	session: string;
 	requestCode: ResponseCode;
 	data: T;
+	id: string;
 }

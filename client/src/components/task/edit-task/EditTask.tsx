@@ -12,6 +12,8 @@ import {
 	Space,
 	Typography,
 	Divider,
+	Row,
+	Col,
 } from "antd";
 import { Store } from "antd/lib/form/interface";
 import FormLocale from "antd/es/locale/uk_UA";
@@ -36,7 +38,9 @@ import { User } from "../../../types/user";
 import Title from "antd/lib/typography/Title";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 
-import "./animations.css";
+import "./styles.css";
+import { TaskFilterDrawer } from "../taskFilterDrawer/TaskFilterDrawer";
+import { TaskFilters, CreateEmptyTaskFilter } from "../../../types/taskFilter";
 
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
@@ -64,6 +68,7 @@ export const EditTask: React.FC<Props> = () => {
 	const [tasksState, setTasksState] = useState<Task[]>([]);
 	const [currentTask, setCurrentTask] = useState<Task | undefined>(undefined);
 	const [form] = Form.useForm();
+	const [taskFilterVisible, setTaskFilterVisible] = useState<boolean>(false);
 
 	useEffect(() => {
 		ConnectionManager.getInstance().registerResponseOnceHandler(
@@ -86,28 +91,29 @@ export const EditTask: React.FC<Props> = () => {
 		);
 
 		ConnectionManager.getInstance().registerResponseOnceHandler(
-			RequestType.GET_MY_PARENT_TASK,
+			RequestType.GET_MY_EDITABLE_TASKS,
 			(data) => {
-				const dataMessage = data as ResponseMessage<Array<Task>>;
+				console.log(data);
+				const dataMessage = data as ResponseMessage<Task[]>;
 				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
 					console.log(`Error: ${dataMessage.requestCode}`);
 					return;
 				}
-				console.log(RequestType.GET_MY_PARENT_TASK, data);
+
 				setTasksState(dataMessage.data);
 			}
 		);
 
 		ConnectionManager.getInstance().emit(
-			RequestType.GET_MY_PARENT_TASK,
-			{},
+			RequestType.GET_MY_EDITABLE_TASKS,
+			CreateEmptyTaskFilter(),
 			accState.session
 		);
 	}, []);
 	//////VARIABLES
 	const layout = {
 		labelCol: { span: 8 },
-		wrapperCol: { span: 16 },
+		wrapperCol: { span: 8 },
 	};
 	const usersExecuters = subordinatesState.map((u) => {
 		if (u.id === accState.id) {
@@ -128,6 +134,10 @@ export const EditTask: React.FC<Props> = () => {
 		{ value: TaskPeriod.MONTH, name: "Щомісяца" },
 		{ value: TaskPeriod.HALFYEAR, name: "Кожні півроку" },
 		{ value: TaskPeriod.YEAR, name: "Щорічна задача" },
+	];
+	const taskStatus = [
+		{ value: TaskStatus.COMPLITED, name: "Завершена" },
+		{ value: TaskStatus.IN_PROGRESS, name: "В прогресі" },
 	];
 
 	//////CALLBACKS
@@ -161,10 +171,11 @@ export const EditTask: React.FC<Props> = () => {
 			priority: data.priority,
 			startDate: data.termin[0].toDate(),
 			endDate: data.termin[1].toDate(),
-			status: currTask.status,
+			status: data.status,
 			dateComplited: currTask.dateComplited,
 			periodParentId: currTask.periodParentId,
 			report: currTask.report,
+			isPrivate: currTask.isPrivate, //TODO
 		};
 
 		ConnectionManager.getInstance().emit(
@@ -180,19 +191,92 @@ export const EditTask: React.FC<Props> = () => {
 
 	const onTaskSelect = (t_id: number) => {
 		const task = tasksState.find((t) => t.id === t_id);
-		const store: Store = {
-			description: task?.description,
-			executer: task?.executerId,
-			period: task?.period,
-			priority: task?.priority,
-			termin: [moment(task?.startDate), moment(task?.endDate)],
-			title: task?.title,
-		};
-		form.setFieldsValue(store);
-		setCurrentTask(task);
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.GET_USERS_INFO,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<User[]>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+
+				const store: Store = {
+					description: task?.description,
+					executer: task?.executerId,
+					author: User.GetUserPIB(dataMessage.data[0]),
+					period: task?.period,
+					priority: task?.priority,
+					termin: [moment(task?.startDate), moment(task?.endDate)],
+					title: task?.title,
+					status: task?.status,
+				};
+				form.setFieldsValue(store);
+				setCurrentTask(task);
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.GET_USERS_INFO,
+			[task?.authorId],
+			accState.session
+		);
 	};
 
 	const onTitleChange = (value: any) => {};
+
+	const onFilterClick = () => {
+		setTaskFilterVisible(true);
+	};
+	const onTaskFilterDrawerClose = () => {
+		setTaskFilterVisible(false);
+	};
+	const onRecieveTaskFilter = (filter: TaskFilters) => {
+		console.log("Recieve filter", JSON.stringify(filter));
+
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.GET_MY_EDITABLE_TASKS,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<Task[]>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+
+				setTasksState(dataMessage.data);
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.GET_MY_EDITABLE_TASKS,
+			filter,
+			accState.session
+		);
+	};
+
+	const onTaskDelete = () => {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.REMOVE_TASK,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<number>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+
+				setTasksState(tasksState.filter((t) => t.id !== dataMessage.data));
+				setCurrentTask(undefined);
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.REMOVE_TASK,
+			currentTask?.id,
+			accState.session
+		);
+	};
 
 	return (
 		<div
@@ -209,16 +293,22 @@ export const EditTask: React.FC<Props> = () => {
 				<Typography.Text>
 					Оберіть задачу, яку бажаєте відреагувати
 				</Typography.Text>
-				<Select
-					style={{
-						width: "30%",
-					}}
-					onSelect={onTaskSelect}
-				>
-					{tasksState.map((task) => {
-						return <Select.Option value={task.id}>{task.title}</Select.Option>;
-					})}
-				</Select>
+
+				<Row>
+					<Col flex="70%">
+						<Select style={{ width: "100%" }} onSelect={onTaskSelect}>
+							{tasksState.map((task) => {
+								return (
+									<Select.Option value={task.id}>{task.title}</Select.Option>
+								);
+							})}
+						</Select>
+					</Col>
+					<Col flex="30%">
+						<Button onClick={onFilterClick}>додади фильтры</Button>
+					</Col>
+				</Row>
+
 				<Divider style={{ borderColor: "#8c8c8c" }}></Divider>
 				<SwitchTransition mode="out-in">
 					<CSSTransition
@@ -241,95 +331,79 @@ export const EditTask: React.FC<Props> = () => {
 								onFinish={onFinish}
 								style={{ visibility: currentTask ? "visible" : "hidden" }}
 							>
-								<Form.Item label="Назва задачі" name="title">
-									<Input onChange={onTitleChange} />
-								</Form.Item>
-								<Form.Item label="Опис задачі" name="description">
-									<TextArea rows={4} />
-								</Form.Item>
-								<Form.Item label="Виконавець" name="executer">
-									<Select>
-										{usersExecuters.map((user) => {
-											return (
-												<Select.Option value={user.id}>
-													{user.name}
-												</Select.Option>
-											);
-										})}
-									</Select>
-								</Form.Item>
-								<Form.Item label="Термін виконання" name="termin">
-									<RangePicker
-										picker="date"
-										locale={DatePickerLocal}
-										style={{
-											display: "flex",
-											flexDirection: "row",
-											justifyContent: "flex-start",
-											width: "50%",
-										}}
-									/>
-								</Form.Item>
+								<Row justify="center">
+									<Col style={{ textAlign: "left" }}>
+										<Form.Item label="Назва задачі" name="title">
+											<Input onChange={onTitleChange} />
+										</Form.Item>
+										<Form.Item label="Опис задачі" name="description">
+											<TextArea rows={4} />
+										</Form.Item>
+										<Form.Item label="Хто поставив" name="author">
+											<Input disabled></Input>
+										</Form.Item>
+										<Form.Item label="Виконавець" name="executer">
+											<Select>
+												{usersExecuters.map((user) => {
+													return (
+														<Select.Option value={user.id}>
+															{user.name}
+														</Select.Option>
+													);
+												})}
+											</Select>
+										</Form.Item>
+										<Form.Item label="Термін виконання" name="termin">
+											<RangePicker picker="date" locale={DatePickerLocal} />
+										</Form.Item>
+										<Form.Item label="Періодичність" name="period">
+											<Radio.Group buttonStyle="solid">
+												{taskPeriod.map((period) => {
+													return (
+														<Radio.Button value={period.value}>
+															{period.name}
+														</Radio.Button>
+													);
+												})}
+											</Radio.Group>
+										</Form.Item>
+										<Form.Item label="Пріоритетність" name="priority">
+											<Radio.Group buttonStyle="solid">
+												{taskPriorities.map((tp) => {
+													return (
+														<Radio.Button value={tp.value}>
+															{tp.name}
+														</Radio.Button>
+													);
+												})}
+											</Radio.Group>
+										</Form.Item>
+										{currentTask?.period === TaskPeriod.ONCE && (
+											<Form.Item label="Статус" name="status">
+												<Radio.Group buttonStyle="solid">
+													{taskStatus.map((ts) => {
+														return (
+															<Radio.Button value={ts.value}>
+																{ts.name}
+															</Radio.Button>
+														);
+													})}
+												</Radio.Group>
+											</Form.Item>
+										)}
 
-								<Form.Item label="Періодичність" name="period">
-									<Radio.Group
-										buttonStyle="solid"
-										style={{
-											display: "flex",
-											flexDirection: "row",
-											justifyContent: "flex-start",
-											width: "auto",
-										}}
-									>
-										{taskPeriod.map((period) => {
-											return (
-												<Radio.Button value={period.value}>
-													{period.name}
-												</Radio.Button>
-											);
-										})}
-									</Radio.Group>
-								</Form.Item>
-								<Form.Item label="Пріоритетність" name="priority">
-									<Radio.Group
-										buttonStyle="solid"
-										style={{
-											display: "flex",
-											flexDirection: "row",
-											justifyContent: "flex-start",
-											width: "auto",
-										}}
-									>
-										{taskPriorities.map((tp) => {
-											return (
-												<Radio.Button value={tp.value}>{tp.name}</Radio.Button>
-											);
-										})}
-									</Radio.Group>
-								</Form.Item>
-								<Form.Item
-									style={{
-										display: "flex",
-										flexDirection: "column",
-										justifyContent: "center",
-										alignItems: "center",
-										width: "auto",
-									}}
-								>
-									<Button
-										type="primary"
-										htmlType="submit"
-										style={{
-											display: "flex",
-											flexDirection: "column",
-											justifyContent: "center",
-											alignItems: "center",
-											width: "auto",
-										}}
-									>
-										СТВОРИТИ
-									</Button>
-								</Form.Item>
+										<Form.Item style={{ textAlign: "center" }}>
+											<Button type="primary" htmlType="submit">
+												ОНОВИТИ
+											</Button>
+										</Form.Item>
+									</Col>
+									<Col flex="20%">
+										<Button type="primary" danger onClick={onTaskDelete}>
+											Видалити завдання
+										</Button>
+									</Col>
+								</Row>
 							</Form>
 							<Modal
 								title={modalState.title}
@@ -347,6 +421,11 @@ export const EditTask: React.FC<Props> = () => {
 					</CSSTransition>
 				</SwitchTransition>
 			</Space>
+			<TaskFilterDrawer
+				onClose={onTaskFilterDrawerClose}
+				visible={taskFilterVisible}
+				onTaskFilter={onRecieveTaskFilter}
+			></TaskFilterDrawer>
 		</div>
 	);
 };

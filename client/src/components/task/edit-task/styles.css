@@ -22,3 +22,11 @@
 .task-exit-active {
     transition: opacity 300ms, transform 300ms;
 }
+
+.ant-col-14 {
+    max-width: none;
+}
+
+.ant-form-item-label {
+    white-space: normal;
+}

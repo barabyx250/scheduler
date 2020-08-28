@@ -22,11 +22,13 @@ import {
 	List,
 	Modal,
 	message,
+	Tooltip,
+	Select,
 } from "antd";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 
 import "./animations.css";
-import { pathToFileURL } from "url";
+import { EMPTY_POSITION_ID } from "../../types/constants";
 
 export const PositionsEditer: React.FC = () => {
 	const [userPositionsTreeDataState, setUserPositionsTreeDataState] = useState<
@@ -158,6 +160,121 @@ export const PositionsEditer: React.FC = () => {
 		});
 	};
 
+	const onChangeParentPosition = (position: UserPosition) => {
+		var newChiefId = -1;
+		const onChiefSelect = (value: number) => {
+			newChiefId = value;
+		};
+		Modal.confirm({
+			title: "Оберіть нового прямого начальника",
+			content: (
+				<div>
+					<Select style={{ width: "100%" }} onChange={onChiefSelect}>
+						{treeUserPosition?.arrPositions
+							.filter((pos) => pos.pos_id !== currentPosition?.pos_id)
+							.map((pos) => (
+								<Select.Option value={pos.pos_id}>{pos.name}</Select.Option>
+							))}
+						{/* <Select.Option></Select.Option> */}
+					</Select>
+				</div>
+			),
+			onOk: () => {
+				if (newChiefId >= 0) {
+					position.parent_id = newChiefId;
+					ConnectionManager.getInstance().registerResponseOnceHandler(
+						RequestType.UPDATE_USER_POSITIONS,
+						(data: any) => {
+							console.log(data);
+							const dataMessage = data as ResponseMessage<any>;
+							if (
+								dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
+							) {
+								message.error(dataMessage.requestCode);
+								return;
+							}
+
+							message.success("Оновлено!");
+
+							ConnectionManager.getInstance().emit(
+								RequestType.GET_USER_POSITIONS,
+								{},
+								accState.session
+							);
+						}
+					);
+					ConnectionManager.getInstance().registerResponseOnceHandler(
+						RequestType.GET_USER_POSITIONS,
+						(data) => {
+							console.log(data);
+							const dataMessage = data as ResponseMessage<UserPosition[]>;
+							if (
+								dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
+							) {
+								console.log(`Error: ${dataMessage.requestCode}`);
+								return;
+							}
+
+							const tup: TreeUserPosition = new TreeUserPosition();
+							tup.fillByArray(dataMessage.data);
+							const treeData = tup.generateTreeData();
+							setUserPositionsTreeDataState(treeData);
+							setTreeUserPositions(tup);
+						}
+					);
+					ConnectionManager.getInstance().emit(
+						RequestType.UPDATE_USER_POSITIONS,
+						[position],
+						accState.session
+					);
+				}
+			},
+		});
+	};
+
+	const onDeletePositions = (position: UserPosition) => {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.REMOVE_POSITIONS,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<UserPosition[]>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					message.error("Сталася помилка при видаленні! Спробуйте пізніше!");
+					return;
+				}
+				message.success("Видалено успішно!");
+
+				ConnectionManager.getInstance().emit(
+					RequestType.GET_USER_POSITIONS,
+					{},
+					accState.session
+				);
+			}
+		);
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.GET_USER_POSITIONS,
+			(data) => {
+				console.log(data);
+				const dataMessage = data as ResponseMessage<UserPosition[]>;
+				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+					console.log(`Error: ${dataMessage.requestCode}`);
+					return;
+				}
+
+				const tup: TreeUserPosition = new TreeUserPosition();
+				tup.fillByArray(dataMessage.data);
+				const treeData = tup.generateTreeData();
+				setUserPositionsTreeDataState(treeData);
+				setTreeUserPositions(tup);
+			}
+		);
+		ConnectionManager.getInstance().emit(
+			RequestType.REMOVE_POSITIONS,
+			[position.pos_id],
+			accState.session
+		);
+	};
+
 	return (
 		<div>
 			<Typography.Title>Меню редагування посад</Typography.Title>
@@ -187,6 +304,19 @@ export const PositionsEditer: React.FC = () => {
 							</Col>
 							<Col flex={"10%"}>
 								<Button onClick={onNameChangeClick}>Оновити ім'я</Button>
+								{currentPosition !== undefined &&
+									currentPosition.pos_id !== EMPTY_POSITION_ID && (
+										<Tooltip title="Видалення можливе тільки, коли за цією посадою нема мосад нижче неї">
+											<Button
+												onClick={onDeletePositions.bind(null, currentPosition)}
+												disabled={
+													getPositionChilds(currentPosition.pos_id).length > 0
+												}
+											>
+												Видалити посаду
+											</Button>
+										</Tooltip>
+									)}
 							</Col>
 							<Col flex={"20%"}>
 								<Typography.Text>Хто підпорядковується: </Typography.Text>
@@ -198,14 +328,41 @@ export const PositionsEditer: React.FC = () => {
 											: []
 									}
 									renderItem={(item) => (
-										<List.Item
-											style={{
-												color: "#e6f7ff",
-												borderRadius: "5px",
-												backgroundColor: "#1890ff",
-											}}
-										>
-											<div style={{ paddingLeft: "1%" }}>{item.name}</div>
+										<List.Item style={{ padding: "5px 0" }}>
+											<div
+												style={{
+													paddingLeft: "1%",
+													width: "100%",
+													color: "#e6f7ff",
+													borderRadius: "5px",
+												}}
+											>
+												<Row>
+													<Col
+														flex="70%"
+														style={{
+															backgroundColor: "#1890ff",
+														}}
+													>
+														{item.name}
+													</Col>
+													<Col style={{ paddingLeft: "1%" }}>
+														<Tooltip title="Назначити нового прямого начальника">
+															<Button
+																type="text"
+																size="small"
+																danger
+																onClick={onChangeParentPosition.bind(
+																	null,
+																	item
+																)}
+															>
+																Рухати
+															</Button>
+														</Tooltip>
+													</Col>
+												</Row>
+											</div>
 										</List.Item>
 									)}
 									style={{

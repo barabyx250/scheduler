@@ -9,7 +9,7 @@ import {
 import { DBSessionManager } from "../managers/db_session_manager";
 import { logDev } from "../logger/config";
 import { UserPosition, TreeUserPosition } from "../types/userPosition";
-import { USER_POSITIONS } from "../types/constants";
+import { USER_POSITIONS, EMPTY_POSITION_ID } from "../types/constants";
 
 export class UserModel {
 	public static async userLogin(
@@ -66,6 +66,20 @@ export class UserModel {
 		};
 	}
 
+	public static async getAllUsers(
+		request: RequestMessage<any>
+	): Promise<ResponseMessage<User[]>> {
+		let requestCode = ResponseCode.RES_CODE_SUCCESS;
+
+		const user = await DBUserManager.GetAllUsers();
+
+		return {
+			data: user.map((u) => u.ToRequestObject()),
+			messageInfo: "",
+			requestCode: requestCode,
+		};
+	}
+
 	public static async getUserPositions(
 		request: RequestMessage<Array<any>>
 	): Promise<ResponseMessage<UserPosition[]>> {
@@ -111,10 +125,26 @@ export class UserModel {
 		const tup: TreeUserPosition = new TreeUserPosition();
 
 		tup.fillByArray(positions.map((entity) => entity.ToRequestObject()));
-		const subordinates: UserPosition[] | undefined =
+		let subordinates: UserPosition[] | undefined =
 			user.position.pos_id === USER_POSITIONS.COMADER
 				? positions.map((u) => u.ToRequestObject())
 				: tup.positions.get(user.position.pos_id);
+
+		const getChildOfSubbordinates = (subs: UserPosition[]) => {
+			let result = subs.concat([]);
+			subs.forEach((s) => {
+				const poss = tup.positions.get(s.pos_id);
+				if (poss) result = result.concat(getChildOfSubbordinates(poss));
+			});
+			return result;
+		};
+
+		if (
+			subordinates !== undefined &&
+			user.position.pos_id !== USER_POSITIONS.COMADER
+		) {
+			subordinates = getChildOfSubbordinates(subordinates);
+		}
 
 		if (subordinates !== undefined) {
 			for (const sub of subordinates) {
@@ -146,6 +176,38 @@ export class UserModel {
 		};
 	}
 
+	public static async isPositionAboveOrEqual(
+		one: UserPosition,
+		two: UserPosition
+	): Promise<boolean> {
+		//console.log("compare positions", one, two);
+
+		if (one.pos_id === two.pos_id) return true;
+		if (one.parent_id === two.pos_id) return false;
+
+		const positions = await DBUserManager.GetAllUserPositions();
+		const tup: TreeUserPosition = new TreeUserPosition();
+
+		tup.fillByArray(positions.map((entity) => entity.ToRequestObject()));
+
+		const parentSearchF = (p_id: number): UserPosition => {
+			const pos = tup.findPossById(p_id);
+			if (pos.pos_id !== two.pos_id && pos.pos_id > 0) {
+				return parentSearchF(pos.parent_id);
+			}
+
+			return {
+				name: "",
+				parent_id: 0,
+				pos_id: 0,
+			};
+		};
+
+		const res = parentSearchF(one.parent_id);
+
+		return res.name === "";
+	}
+
 	public static async updateUsersInfo(
 		users: User[]
 	): Promise<ResponseMessage<any>> {
@@ -163,6 +225,11 @@ export class UserModel {
 
 				if (user.password !== "") userEntity.password = user.password;
 
+				if (user.position.pos_id >= 0)
+					userEntity.position = await DBUserManager.GetUserPositionsById(
+						user.position.pos_id
+					);
+
 				DBUserManager.UpdateUserInfo(userEntity);
 			}
 		}
@@ -172,5 +239,58 @@ export class UserModel {
 			messageInfo: "SUCCESS",
 			requestCode: ResponseCode.RES_CODE_SUCCESS,
 		};
+	}
+
+	public static async getMyChiefsInfo(
+		request: RequestMessage<any>
+	): Promise<ResponseMessage<User[]>> {
+		const user = await DBUserManager.GetUserBySession(request.session);
+
+		if (user) {
+			const chiefs = await DBUserManager.GetUserChiefs(user.id);
+
+			return {
+				data: chiefs.map((ch) => ch.ToRequestObject()),
+				messageInfo: "SUCCESS",
+				requestCode: ResponseCode.RES_CODE_SUCCESS,
+			};
+		}
+
+		return {
+			data: [],
+			messageInfo: "FAILUTRE",
+			requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+		};
+	}
+
+	public static async removeUserPositions(request: RequestMessage<number[]>) {
+		for (const posId of request.data) {
+			const userEntities = await DBUserManager.GetUsersByPositionId(posId);
+			const emptyPositionEntity = await DBUserManager.GetUserPositionsById(
+				EMPTY_POSITION_ID
+			);
+			if (emptyPositionEntity) {
+				for (const userEntity of userEntities) {
+					userEntity.position = emptyPositionEntity;
+					await DBUserManager.UpdateUserInfo(userEntity);
+				}
+				DBUserManager.RemoveUserPosition(posId);
+			}
+		}
+
+		return {
+			data: [],
+			messageInfo: "FAILUTRE",
+			requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+		};
+	}
+
+	public static async checkInstallEmptyPosition() {
+		const position = await DBUserManager.GetUserPositionsById(
+			EMPTY_POSITION_ID
+		);
+		if (position === undefined) {
+			DBUserManager.CreateEmptyPosition();
+		}
 	}
 }

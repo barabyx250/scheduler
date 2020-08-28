@@ -30,6 +30,7 @@ import { selectAccount } from "../../redux/slicers/accountSlice";
 import { TaskDrawer, TaskDrawerProps } from "../task/TaskDrawer";
 import { User } from "../../types/user";
 import { Task } from "../../types/task";
+import { ArgsProps } from "antd/lib/notification";
 
 export const Notification: React.FC = () => {
 	const onTaskDrawerClose = () => {
@@ -48,17 +49,79 @@ export const Notification: React.FC = () => {
 	});
 	const accState = useSelector(selectAccount);
 
-	const openNotification = (
-		message: string,
-		description: string,
-		duration: number = 0
-	) => {
-		const args = {
-			message: message,
-			description: description,
+	const openNotification = (not: NotificationItem, duration: number = 0) => {
+		const args: ArgsProps = {
+			message: not.title,
+			description: not.content,
 			duration: duration,
+			onClick: () => {
+				console.log("CLick on notification", not);
+
+				if (
+					not.type === NotificationType.SYSTEM ||
+					not.type === NotificationType.TASK_CREATE
+				) {
+					ConnectionManager.getInstance().registerResponseOnceHandler(
+						RequestType.GET_TASKS_INFO,
+						(data) => {
+							const dataMessage = data as ResponseMessage<Array<Task>>;
+							console.log("Data message", dataMessage);
+							if (
+								dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
+							) {
+								console.log(`Error: ${dataMessage.requestCode}`);
+								return;
+							}
+
+							if (dataMessage.data.length === 0) {
+								message.error("Помилка! Мабудь, задача вже видалена.", 5);
+								return;
+							}
+
+							const task = dataMessage.data[0];
+
+							ConnectionManager.getInstance().registerResponseOnceHandler(
+								RequestType.GET_USERS_INFO,
+								(data) => {
+									const dataMessage = data as ResponseMessage<Array<User>>;
+									if (
+										dataMessage.requestCode ===
+										ResponseCode.RES_CODE_INTERNAL_ERROR
+									) {
+										console.log(`Error: ${dataMessage.requestCode}`);
+										return;
+									}
+
+									let executer = dataMessage.data[0];
+									let author = dataMessage.data[1];
+
+									setTaskDrawerState((prevState) => ({
+										...prevState,
+										task: task,
+										visible: true,
+										author: author,
+										executer: executer,
+									}));
+								}
+							);
+
+							ConnectionManager.getInstance().emit(
+								RequestType.GET_USERS_INFO,
+								[task.executerId, task.authorId],
+								accState.session
+							);
+						}
+					);
+
+					ConnectionManager.getInstance().emit(
+						RequestType.GET_TASKS_INFO,
+						[JSON.parse(not.customData).id],
+						accState.session
+					);
+				}
+			},
 		};
-		notification["info"](args);
+		notification.info(args);
 	};
 
 	useEffect(() => {
@@ -66,7 +129,7 @@ export const Notification: React.FC = () => {
 			RequestType.NOTIFICATION,
 			(data: NotificationItem) => {
 				console.log("notification", data);
-				openNotification(data.title, data.content);
+				openNotification(data);
 			}
 		);
 		ConnectionManager.getInstance().registerResponseOnceHandler(
@@ -90,7 +153,8 @@ export const Notification: React.FC = () => {
 		ConnectionManager.getInstance().emit(
 			RequestType.GET_MY_NOTIFICATIONS,
 			{},
-			accState.session
+			accState.session,
+			true
 		);
 	}, []);
 
@@ -189,11 +253,13 @@ export const Notification: React.FC = () => {
 		}
 	};
 
+	//console.log("TASK DRAWER STATE", taskDrawerState);
 	if (notificationItems.length === 0)
 		return (
-			<NotificationOutlined
-				style={{ fontSize: "30px", color: "#f0f0f0", paddingRight: "1%" }}
-			/>
+			<div style={{ paddingRight: "1%" }}>
+				<TaskDrawer {...taskDrawerState}></TaskDrawer>
+				<NotificationOutlined style={{ fontSize: "30px", color: "#f0f0f0" }} />
+			</div>
 		);
 
 	return (
