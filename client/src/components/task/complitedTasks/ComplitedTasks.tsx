@@ -1,6 +1,6 @@
-import { Table, Button, Empty, Typography, Input } from "antd";
+import { Empty, Typography, Input } from "antd";
 import React, { useState, useEffect } from "react";
-import { Task, TaskStatus, TaskPriority } from "../../../types/task";
+import { Task, TaskStatus } from "../../../types/task";
 import { User } from "../../../types/user";
 import { ConnectionManager } from "../../../managers/connetion/connectionManager";
 import {

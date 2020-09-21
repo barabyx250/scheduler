@@ -25,8 +25,7 @@ import {
 } from "../../types/requests";
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
-import { addDays } from "date-fns";
-import { User } from "../../types/user";
+import { User, UserRole } from "../../types/user";
 import {
 	formatDateForStartDate,
 	formatDateForEndDate,
@@ -71,7 +70,9 @@ export const CreateTask: React.FC<Props> = () => {
 					return;
 				}
 				console.log(RequestType.GET_MY_SUBORDINATE, data);
-				setSubordinatesState(dataMessage.data);
+				setSubordinatesState(
+					dataMessage.data.filter((u) => u.role !== UserRole.ADMIN)
+				);
 			}
 		);
 

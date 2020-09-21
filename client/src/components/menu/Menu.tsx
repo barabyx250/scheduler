@@ -1,9 +1,7 @@
 import { Layout, Menu } from "antd";
-import Icon, {
+import {
 	PieChartOutlined,
 	PlusCircleOutlined,
-	GroupOutlined,
-	UsergroupAddOutlined,
 	UserAddOutlined,
 	BranchesOutlined,
 	EditOutlined,
@@ -14,10 +12,10 @@ import Icon, {
 import React, { useState } from "react";
 import styles from "./menu.module.css";
 import { UserMenu, UserMenuPath } from "../user/menu/UserMenu";
-import { NavLink, Switch, Route } from "react-router-dom";
+import { NavLink, Route, Redirect } from "react-router-dom";
 import { MyTasks } from "../task/my-task/MyTasks";
 import { CreateTask } from "../task/CreateTask";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectAccount } from "../../redux/slicers/accountSlice";
 import { UserRole } from "../../types/user";
 import { CreateUserPage } from "../user/CreateUser";
@@ -26,13 +24,15 @@ import "./animations.css";
 import MenuItem from "antd/lib/menu/MenuItem";
 import { SubbordinatesTasks } from "../task/subtasks/SubbordinatesTasks";
 import { EditTask } from "../task/edit-task/EditTask";
-import { Notification } from "../notifications/Notifcation";
+import { RDPNotification } from "../notifications/Notifcation";
 import { PositionsEditer } from "../positions.editer/PositionsEditer";
 import { ComplitedTasks } from "../task/complitedTasks/ComplitedTasks";
 import { UserSettings } from "../user/settings/UserSettings";
 import { UserEditerPage } from "../user/user.editer/UserEditer";
 import { FAQ } from "../faq/FAQ";
 import { PositionViewer } from "../user/position.viewer/PositionViewer";
+import { AdminMessagesPage } from "../messages/admin.messages/AdminMessagesPage";
+import { UserMessagesPage } from "../messages/user.messages/UserMessagesPage";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -46,6 +46,7 @@ export enum MenuRoutes {
 	COMPLITED_TASKS = "/menu/task/selector",
 	USER_EDIT = "/menu/user/edit",
 	POSITION_VIEWER = "/menu/positions/view",
+	ADMIN_MESSANGER = "/menu/admin/messages",
 
 	DIVIDER = "divider",
 }
@@ -139,10 +140,17 @@ const routes = [
 		icon: <UserSwitchOutlined />,
 		content: "Редагувати посади",
 	},
+	{
+		key: "5",
+		path: MenuRoutes.ADMIN_MESSANGER,
+		name: "AdminMessanger",
+		Component: AdminMessagesPage,
+		icon: <UserSwitchOutlined />,
+		content: "СМС",
+	},
 ];
 
 export const MainMenu: React.FC = () => {
-	const dispatch = useDispatch();
 	const accState = useSelector(selectAccount);
 	const [state, setState] = useState({
 		collapsed: false,
@@ -164,9 +172,7 @@ export const MainMenu: React.FC = () => {
 		<Layout style={{ minHeight: "100vh" }}>
 			<Sider collapsed={state.collapsed} onCollapse={onCollapse}>
 				<div className={styles.logoBox}>
-					<div id="textLogoBox">
-						{!state.collapsed ? "ZSU Roadmap" : "ZSU RM"}
-					</div>
+					<div id="textLogoBox">{!state.collapsed ? "RDP" : "ZSU RM"}</div>
 				</div>
 				<Menu
 					theme="dark"
@@ -177,12 +183,24 @@ export const MainMenu: React.FC = () => {
 						.filter(({ path }) => {
 							if (accState.role === UserRole.USER) {
 								return (
-									path !== MenuRoutes.CREATE_USERS &&
-									path !== MenuRoutes.POSITIONS_EDIT &&
-									path !== MenuRoutes.USER_EDIT
+									path === MenuRoutes.COMPLITED_TASKS ||
+									path === MenuRoutes.CREATE_TASK ||
+									path === MenuRoutes.MY_TASKS ||
+									path === MenuRoutes.SUBBORDINATES_TASK ||
+									path === MenuRoutes.TASK_EDIT ||
+									path === MenuRoutes.POSITION_VIEWER
 								);
 							}
-							return true;
+							if (accState.role === UserRole.ADMIN) {
+								return (
+									path === MenuRoutes.CREATE_USERS ||
+									path === MenuRoutes.POSITIONS_EDIT ||
+									path === MenuRoutes.USER_EDIT ||
+									path === MenuRoutes.ADMIN_MESSANGER ||
+									path === MenuRoutes.POSITION_VIEWER
+								);
+							}
+							return false;
 						})
 						.map(({ key, path, icon, content }) => {
 							if (path === MenuRoutes.DIVIDER) {
@@ -208,7 +226,7 @@ export const MainMenu: React.FC = () => {
 						alignItems: "center",
 					}}
 				>
-					<Notification></Notification>
+					<RDPNotification></RDPNotification>
 					<Menu
 						theme="dark"
 						mode="horizontal"
@@ -271,10 +289,22 @@ export const MainMenu: React.FC = () => {
 						<Route key={UserMenuPath.FAQ} exact path={UserMenuPath.FAQ}>
 							<FAQ></FAQ>
 						</Route>
+
+						<Route
+							key={UserMenuPath.FEEDBACK}
+							exact
+							path={UserMenuPath.FEEDBACK}
+						>
+							<UserMessagesPage></UserMessagesPage>
+						</Route>
+
+						<Route exact path={["/", "/main"]}>
+							<Redirect to={MenuRoutes.MY_TASKS} />
+						</Route>
 					</div>
 				</Content>
 				<Footer style={{ textAlign: "center" }}>
-					ZSU Roadmap ©2020 Created by BIUS
+					Roadmap ©2020 Created by BIUS
 				</Footer>
 			</Layout>
 		</Layout>

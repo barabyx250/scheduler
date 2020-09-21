@@ -1,29 +1,15 @@
 import { Table, Button, Tag, Space, Modal, Typography } from "antd";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Task, TaskStatus, TaskPriority } from "../../../types/task";
 import { User } from "../../../types/user";
-import { ConnectionManager } from "../../../managers/connetion/connectionManager";
-import {
-	RequestType,
-	ResponseMessage,
-	ResponseCode,
-} from "../../../types/requests";
-import { useSelector } from "react-redux";
-import { selectAccount } from "../../../redux/slicers/accountSlice";
-import { title } from "process";
-import { TimersManager } from "../../../managers/timersManager";
-import {
-	CALLBACK_UPDATE_MY_TASK,
-	CALLBACK_GET_COMPLITED_MY_TASK,
-} from "../../../types/constants";
 
-const { Text, Link } = Typography;
+const { Link } = Typography;
 
 const columns = [
 	{
 		title: "Назва",
 		dataIndex: "title",
-		render: (title: string) => <a>{title}</a>,
+		render: (title: string) => <link>{title}</link>,
 	},
 	{
 		title: "Пріоритет",
@@ -144,7 +130,6 @@ interface TableTaskProps {
 }
 
 export const TableTask: React.FC<TableTaskProps> = (props: TableTaskProps) => {
-	const accState = useSelector(selectAccount);
 	//const [tableData, setTableData] = useState<TaskTableData[]>([]);
 
 	const getUserPIB = (id: number) => {

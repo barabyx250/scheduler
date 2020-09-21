@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
 	Drawer,
-	Typography,
 	Button,
 	Input,
 	Select,
@@ -25,8 +24,8 @@ import DatePickerLocal from "antd/es/date-picker/locale/uk_UA";
 import * as moment from "moment";
 
 import { RangeValue } from "../../../../node_modules/rc-picker/lib/interface";
+import { startOfDay, endOfDay } from "date-fns/esm";
 
-const { Text, Paragraph } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
@@ -46,17 +45,6 @@ export const TaskFilterDrawer: React.FC<TaskFilterDrawerProps> = (
 	const [subbordinates, setSubbordinates] = useState<User[]>([]);
 	const [chiefs, setChiefs] = useState<User[]>([]);
 	const accState = useSelector(selectAccount);
-
-	//if (props.constFilters !== undefined) setFilters(props.constFilters);
-
-	const formatDate = (date: Date | undefined) => {
-		if (date !== undefined) {
-			let newDate = new Date(date);
-			return newDate.toLocaleDateString();
-		}
-
-		return "";
-	};
 
 	useEffect(() => {
 		ConnectionManager.getInstance().registerResponseOnceHandler(
@@ -160,8 +148,8 @@ export const TaskFilterDrawer: React.FC<TaskFilterDrawerProps> = (
 			setFilters({
 				...filters,
 				betweenDates: {
-					start: values[0].toDate(),
-					end: values[1].toDate(),
+					start: startOfDay(values[0].toDate()),
+					end: endOfDay(values[1].toDate()),
 				},
 			});
 		} else {

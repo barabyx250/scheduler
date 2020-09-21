@@ -17,11 +17,9 @@ import Store from "../../../app/store";
 import { User } from "../../../types/user";
 import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
 import {
-	formatDateForDisplayTasks,
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
-import { Fade } from "react-awesome-reveal";
 import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
 
 const { Text } = Typography;

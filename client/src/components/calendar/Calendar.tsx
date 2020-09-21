@@ -3,15 +3,9 @@ import { Task } from "../../types/task";
 import { CalendarWeek } from "./calendar-view-week/CalendarViewWeek";
 import { CalendarViewMonth } from "./calendar-view-month/CalendarViewMonth";
 import { CalendarViewHalfYear } from "./calendar-view-half-year/CalendarViewHalfYear";
-import {
-	CSSTransition,
-	TransitionGroup,
-	Transition,
-	SwitchTransition,
-} from "react-transition-group";
+import { CSSTransition, SwitchTransition } from "react-transition-group";
 
 import "./calendar_animations.css";
-import { Fade } from "react-awesome-reveal";
 
 export enum Type {
 	WEEK,

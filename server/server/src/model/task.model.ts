@@ -200,17 +200,27 @@ export class TaskModel {
 	}
 
 	public static async getTasksBySubbordinates(
-		request: RequestMessage<Array<number>>
+		request: RequestMessage<{ subsId: Array<number>; filterTask?: TaskFilters }>
 	): Promise<ResponseMessage<Task[]>> {
 		let resTasks: Task[] = [];
 
-		for (const sub_id of request.data) {
+		for (const sub_id of request.data.subsId) {
 			const executersTasks = (
 				await DBTaskManager.GetTasksByExecuterId(sub_id)
 			).filter((v) => v.flags.isPrivate === false);
-			resTasks = resTasks.concat(
-				executersTasks.map((i) => i.ToRequestObject())
-			);
+
+			for (const execTask of executersTasks) {
+				if (
+					request.data.filterTask !== undefined &&
+					!filterTask(request.data.filterTask, execTask.ToRequestObject())
+				) {
+					continue;
+				}
+				resTasks.push(execTask.ToRequestObject());
+			}
+			// resTasks = resTasks.concat(
+			// 	executersTasks.map((i) => i.ToRequestObject())
+			// );
 		}
 
 		return {

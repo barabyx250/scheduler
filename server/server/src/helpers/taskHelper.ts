@@ -3,6 +3,7 @@ import { addMonths, addYears } from "date-fns";
 import { TaskEntity } from "../entities/task.entity";
 import { TaskFilters } from "../types/taskFilter";
 import { fi } from "date-fns/locale";
+import { LoggerInstanse } from "../logger/config";
 
 export function generatePeriodTasks(task: Task): Task[] {
 	const periodTasks: Task[] = [];
@@ -39,11 +40,16 @@ export function ifTaskBetweenDates(
 	end: Date,
 	task: Task | TaskEntity
 ) {
-	const oneStart = new Date(task.startDate) <= end;
-	const twoStart = new Date(task.startDate) >= start;
+	const newStartDate = new Date(task.startDate);
+	const newEndDate = new Date(task.endDate);
+	const newStart = new Date(start);
+	const endStart = new Date(end);
 
-	const oneEnd = new Date(task.endDate) <= end;
-	const twoEnd = new Date(task.endDate) > start;
+	const oneStart = newStartDate <= endStart;
+	const twoStart = newStartDate >= newStart;
+
+	const oneEnd = newEndDate <= endStart;
+	const twoEnd = newEndDate > newStart;
 
 	const result: boolean = (oneStart && twoStart) || (oneEnd && twoEnd);
 	return result;
@@ -84,6 +90,10 @@ export function filterTask(filter: TaskFilters, task: Task): boolean {
 			task
 		)
 	) {
+		LoggerInstanse.linfo("BROKE GETING TASK BY DATES", {
+			task,
+			dates: filter.betweenDates,
+		});
 		return false;
 	}
 

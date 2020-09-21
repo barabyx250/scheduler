@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AppThunk, RootState } from "../../app/store";
+import { RootState } from "../../app/store";
 import { Task } from "../../types/task";
 
 export interface TaskState {
@@ -30,6 +30,8 @@ export const taskSlice = createSlice({
 			state: TaskState,
 			action: PayloadAction<{ from: Date; to: Date }>
 		) => {
+			console.log("setGetTaskDateInterval", action);
+
 			return {
 				...state,
 				getTaskFrom: action.payload.from,

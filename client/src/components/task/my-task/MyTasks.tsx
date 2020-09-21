@@ -8,21 +8,12 @@ import {
 	ResponseCode,
 } from "../../../types/requests";
 import { useDispatch, useSelector } from "react-redux";
-import {
-	setTasks,
-	selectMyTask,
-	selectTaskDateInterval,
-} from "../../../redux/slicers/taskSlice";
+import { setTasks, selectMyTask } from "../../../redux/slicers/taskSlice";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
 import { Empty, Radio } from "antd";
 import { TimersManager } from "../../../managers/timersManager";
 import { RadioChangeEvent } from "antd/lib/radio";
 import { CALLBACK_UPDATE_MY_TASK } from "../../../types/constants";
-import {
-	CSSTransition,
-	TransitionGroup,
-	SwitchTransition,
-} from "react-transition-group";
 import Store from "../../../app/store";
 
 import "./animate.min.css";
@@ -31,7 +22,6 @@ export const MyTasks: React.FC = () => {
 	const dispatch = useDispatch();
 	const accState = useSelector(selectAccount);
 	const [calendarTypeState, setCalendarTypeState] = useState(Type.WEEK);
-	const [changedAnimation, setChangedAnimation] = useState(false);
 
 	useEffect(() => {
 		ConnectionManager.getInstance().registerResponseHandler(
@@ -43,7 +33,7 @@ export const MyTasks: React.FC = () => {
 					return;
 				}
 				console.log("GOT TASKS", data);
-				dispatch(setTasks(dataMessage.data));
+				dispatch(setTasks(dataMessage.data.sort((a, b) => a.id - b.id)));
 			}
 		);
 		TimersManager.getInstance().subscribeCallback(
@@ -67,7 +57,6 @@ export const MyTasks: React.FC = () => {
 
 	const onRadioChange = (e: RadioChangeEvent) => {
 		setCalendarTypeState(e.target.value);
-		setChangedAnimation(true);
 	};
 
 	const myTaskState = useSelector(selectMyTask);
@@ -88,14 +77,6 @@ export const MyTasks: React.FC = () => {
 				<Radio.Button value={Type.MONTH}>Місяць</Radio.Button>
 				<Radio.Button value={Type.HALF_YEAR}>Півріччя</Radio.Button>
 			</Radio.Group>
-			{/*
-				<CSSTransition
-					timeout={400}
-					classNames="calendar"
-					onEnter={() => console.log("Enter")}
-					onExited={() => console.log("Exit")}
-					unmountOnExit
-				> */}
 			<Calendar type={calendarTypeState} tasks={myTaskState}></Calendar>
 		</div>
 	);

@@ -7,23 +7,25 @@ import {
 	ResponseMessage,
 	ResponseCode,
 } from "../../../types/requests";
-import { useDispatch, useSelector } from "react-redux";
-import { setTasks, selectMyTask } from "../../../redux/slicers/taskSlice";
+import { useSelector } from "react-redux";
+import { selectTaskDateInterval } from "../../../redux/slicers/taskSlice";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
-import { Empty, Radio, Select, Typography } from "antd";
-import { TimersManager } from "../../../managers/timersManager";
+import { Radio, Select, Typography } from "antd";
 import { RadioChangeEvent } from "antd/lib/radio";
-import { CALLBACK_UPDATE_MY_TASK } from "../../../types/constants";
-import { User } from "../../../types/user";
-
-const { Option } = Select;
+import { User, UserRole } from "../../../types/user";
+import { UserPosition } from "../../../types/userPosition";
+import { CreateEmptyTaskFilter } from "../../../types/taskFilter";
 
 export const SubbordinatesTasks: React.FC = () => {
 	const accState = useSelector(selectAccount);
+	const globalTaskState = useSelector(selectTaskDateInterval);
 	const [calendarTypeState, setCalendarTypeState] = useState(Type.WEEK);
 	const [subbordinatesState, setSubbordinatesState] = useState<User[]>([]);
 	const [subbordinatesTasksState, setSubbordinatesTasksState] = useState<
 		Task[]
+	>([]);
+	const [selectedSubbordinateIds, setSelectedSubbordinateIds] = useState<
+		number[]
 	>([]);
 
 	useEffect(() => {
@@ -36,7 +38,9 @@ export const SubbordinatesTasks: React.FC = () => {
 					return;
 				}
 				setSubbordinatesState(
-					dataMessage.data.filter((u) => u.id !== accState.id)
+					dataMessage.data.filter(
+						(u) => u.id !== accState.id && u.role !== UserRole.ADMIN
+					)
 				);
 			}
 		);
@@ -46,17 +50,17 @@ export const SubbordinatesTasks: React.FC = () => {
 			{},
 			accState.session
 		);
-
-		return () => {
-			TimersManager.getInstance().clearCallback(CALLBACK_UPDATE_MY_TASK);
-		};
 	}, []);
+
+	useEffect(() => {
+		loadUsersTasks(selectedSubbordinateIds);
+	}, [globalTaskState]);
 
 	const onRadioChange = (e: RadioChangeEvent) => {
 		setCalendarTypeState(e.target.value);
 	};
 
-	function handleChange(value: Array<number>) {
+	function loadUsersTasks(value: Array<number>) {
 		ConnectionManager.getInstance().registerResponseOnceHandler(
 			RequestType.GET_TASKS_SUBORDINATES,
 			(data) => {
@@ -68,12 +72,46 @@ export const SubbordinatesTasks: React.FC = () => {
 				setSubbordinatesTasksState(dataMessage.data);
 			}
 		);
+		const filters = CreateEmptyTaskFilter();
+		filters.betweenDates = {
+			start: globalTaskState.from,
+			end: globalTaskState.to,
+		};
+		console.log("loadUsersTasks", filters);
+
 		ConnectionManager.getInstance().emit(
 			RequestType.GET_TASKS_SUBORDINATES,
-			value,
+			{ subsId: value, filterTask: filters },
 			accState.session
 		);
 	}
+
+	function handleChange(value: Array<number>) {
+		loadUsersTasks(value);
+		setSelectedSubbordinateIds(value);
+	}
+
+	const usersGroupExecuters: Map<UserPosition, Array<User>> = new Map<
+		UserPosition,
+		Array<User>
+	>();
+
+	subbordinatesState.forEach((u) => {
+		const isContain =
+			Array.from(usersGroupExecuters).findIndex(
+				(value) => value[0].pos_id === u.position.pos_id
+			) >= 0;
+
+		if (isContain) {
+			usersGroupExecuters.forEach((value, key) => {
+				if (key.pos_id === u.position.pos_id) {
+					value.push(u);
+				}
+			});
+		} else {
+			usersGroupExecuters.set(u.position, [u]);
+		}
+	});
 
 	return (
 		<div>
@@ -84,37 +122,49 @@ export const SubbordinatesTasks: React.FC = () => {
 				onChange={handleChange}
 				tokenSeparators={[","]}
 				showSearch
+				value={selectedSubbordinateIds}
 			>
-				{subbordinatesState.map((user) => {
-					return (
-						<Option key={user.id} value={user.id}>
-							{user.position.name}:
-							{user.secondName + " " + user.middleName + " " + user.firstName}
-						</Option>
-					);
-				})}
+				{Array.from(usersGroupExecuters).map(
+					(value: [UserPosition, User[]]) => {
+						return (
+							<Select.OptGroup label={value[0].name}>
+								{value[1].map((v) => {
+									if (v.id === accState.id) {
+										return <Select.Option value={v.id}>Я</Select.Option>;
+									}
+
+									return (
+										<Select.Option value={v.id}>
+											{User.GetUserPIB(v)}
+										</Select.Option>
+									);
+								})}
+							</Select.OptGroup>
+						);
+					}
+				)}
 			</Select>
 
-			{subbordinatesTasksState.length === 0 ? (
+			{/* {subbordinatesTasksState.length === 0 ? (
 				<Empty style={{ paddingTop: "10%" }} />
-			) : (
-				<div>
-					<Radio.Group
-						defaultValue={Type.WEEK}
-						size="small"
-						style={{ marginTop: 16 }}
-						onChange={onRadioChange}
-					>
-						<Radio.Button value={Type.WEEK}>Тиждень</Radio.Button>
-						<Radio.Button value={Type.MONTH}>Місяць</Radio.Button>
-						<Radio.Button value={Type.HALF_YEAR}>Півріччя</Radio.Button>
-					</Radio.Group>
-					<Calendar
-						type={calendarTypeState}
-						tasks={subbordinatesTasksState}
-					></Calendar>
-				</div>
-			)}
+			) : ( */}
+			<div>
+				<Radio.Group
+					defaultValue={Type.WEEK}
+					size="small"
+					style={{ marginTop: 16 }}
+					onChange={onRadioChange}
+				>
+					<Radio.Button value={Type.WEEK}>Тиждень</Radio.Button>
+					<Radio.Button value={Type.MONTH}>Місяць</Radio.Button>
+					<Radio.Button value={Type.HALF_YEAR}>Півріччя</Radio.Button>
+				</Radio.Group>
+				<Calendar
+					type={calendarTypeState}
+					tasks={subbordinatesTasksState}
+				></Calendar>
+			</div>
+			{/* )} */}
 		</div>
 	);
 };

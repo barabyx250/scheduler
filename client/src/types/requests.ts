@@ -26,6 +26,11 @@ export enum RequestType {
 	REMOVE_TASK = "remove_task",
 	REMOVE_POSITIONS = "remove_positions",
 	GET_ALL_USERS = "get_all_users",
+	GET_COUNT_MESSAGES = "get_count_messages",
+	GET_LAST_MESSAGES = "get_last_messages",
+	SEND_MESSAGE_TO_ADMIN = "send_message_to_admin",
+	GET_ALL_ADMIN_CHATS = "get_all_admin_chats",
+	ADMIN_MESSAGE_NOTIFICATION = "admin_message_notification",
 }
 
 export enum ResponseCode {

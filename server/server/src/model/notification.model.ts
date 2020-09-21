@@ -10,7 +10,7 @@ import { DBSessionManager } from "../managers/db_session_manager";
 import { RequestManager } from "../request-manager";
 import { DBTaskManager } from "../managers/db_task_manager";
 import { RequestType } from "../types/requests";
-import { User } from "../types/user";
+import { User, UserRole } from "../types/user";
 import {
 	TEN_PERCENT_OF_DAY,
 	TEN_MINUTES_IN_MILLISECONDS,
@@ -25,6 +25,7 @@ import {
 } from "date-fns";
 import { logDev } from "../logger/config";
 import moment from "moment";
+import { AdminChat, AdminMessage } from "../types/adminMessage";
 
 export class NotificationModel {
 	public static async GetByRecipient(
@@ -69,7 +70,9 @@ export class NotificationModel {
 			};
 			NotificationModel.SendNotificationToUser(recipientId, notItem, io);
 
-			const chiefs = await DBUserManager.GetUserChiefs(recipientId);
+			const chiefs = (await DBUserManager.GetUserChiefs(recipientId)).filter(
+				(u) => u.role !== UserRole.ADMIN
+			);
 			const chiefTaskAuthor = chiefs.find((ch) => ch.id === task.userAuthor.id);
 			if (chiefTaskAuthor === undefined) {
 				for (var chief of chiefs) {
@@ -112,7 +115,9 @@ export class NotificationModel {
 			};
 			NotificationModel.SendNotificationToUser(recipientId, notItem, io);
 
-			const chiefs = await DBUserManager.GetUserChiefs(recipientId);
+			const chiefs = await (
+				await DBUserManager.GetUserChiefs(recipientId)
+			).filter((u) => u.role !== UserRole.ADMIN);
 			const chiefTaskAuthor = chiefs.find((ch) => ch.id === task.userAuthor.id);
 			if (chiefTaskAuthor === undefined) {
 				for (var chief of chiefs) {
@@ -318,12 +323,6 @@ export class NotificationModel {
 			const tommorowDateStart = startOfTomorrow();
 			const tommorowDateEnd = endOfTomorrow();
 
-			// console.log(
-			// 	"GET TASK BETWEEN DATES: ",
-			// 	tommorowDateStart,
-			// 	tommorowDateEnd
-			// );
-
 			const tasks = await DBTaskManager.GetTasksStartBetweenDates(
 				tommorowDateStart,
 				tommorowDateEnd
@@ -352,5 +351,33 @@ export class NotificationModel {
 				}
 			}
 		}, TEN_MINUTES_IN_MILLISECONDS);
+	}
+
+	public static async SendAdminTextMessageNotification(
+		recipientsId: number[],
+		chat: AdminChat,
+		message: AdminMessage,
+		io: SocketIO.Server
+	) {
+		chat.messages = [message];
+		const userFrom = await DBUserManager.GetUserById(message.fromUser);
+		if (userFrom !== undefined) {
+			for (const recipientId of recipientsId) {
+				const notItem: NotificationItem = {
+					content: `Ви отримали смс від: "${User.GetUserPIB(
+						userFrom.ToRequestObject()
+					)}"`,
+					dateCreation: new Date(),
+					customData: JSON.stringify(chat),
+					from_id: message.fromUser,
+					to_id: recipientId,
+					id: 0,
+					title: "СМС",
+					type: NotificationType.ADMIN_SMS,
+					wasSend: false,
+				};
+				NotificationModel.SendNotificationToUser(recipientId, notItem, io);
+			}
+		}
 	}
 }

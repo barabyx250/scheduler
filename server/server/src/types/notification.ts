@@ -2,6 +2,7 @@ export enum NotificationType {
 	SYSTEM = "notification_system",
 	TASK_CREATE = "notification_task_create",
 	TASK_EDIT = "notification_task_edit",
+	ADMIN_SMS = "admin_sms",
 }
 
 export class NotificationItem {

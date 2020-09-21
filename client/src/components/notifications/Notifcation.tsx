@@ -32,7 +32,7 @@ import { User } from "../../types/user";
 import { Task } from "../../types/task";
 import { ArgsProps } from "antd/lib/notification";
 
-export const Notification: React.FC = () => {
+export const RDPNotification: React.FC = () => {
 	const onTaskDrawerClose = () => {
 		setTaskDrawerState((prevState) => ({
 			...prevState,
@@ -130,6 +130,13 @@ export const Notification: React.FC = () => {
 			(data: NotificationItem) => {
 				console.log("notification", data);
 				openNotification(data);
+				Notification.requestPermission((permission) => {
+					if (permission === "granted") {
+						new Notification(data.title, {
+							body: data.content,
+						});
+					}
+				});
 			}
 		);
 		ConnectionManager.getInstance().registerResponseOnceHandler(
@@ -317,15 +324,18 @@ export const Notification: React.FC = () => {
 												</div>
 												<Row>
 													<Col flex="50%">
-														<Button
-															type="link"
-															icon={<FullscreenOutlined />}
-															value={not.id}
-															onClick={onSaveNotificationClick}
-														>
-															Відкрити
-														</Button>
+														{not.type !== NotificationType.ADMIN_SMS && (
+															<Button
+																type="link"
+																icon={<FullscreenOutlined />}
+																value={not.id}
+																onClick={onSaveNotificationClick}
+															>
+																Відкрити
+															</Button>
+														)}
 													</Col>
+
 													<Col flex="50%">
 														<div style={{ textAlign: "right" }}>
 															<Typography.Text strong>

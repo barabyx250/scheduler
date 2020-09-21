@@ -23,6 +23,7 @@ import {
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
 import { setGetTaskDateInterval } from "../../../redux/slicers/taskSlice";
+import moment from "moment";
 
 const { Text } = Typography;
 
@@ -89,24 +90,10 @@ export class CalendarWeek extends React.Component<
 	}
 
 	formatDateHeaderByDateString(date: string | undefined) {
-		var days = [
-			"Неділя",
-			"Понеділок",
-			"Вівторок",
-			"Середа",
-			"Четвер",
-			"П'ятниця",
-			"Субота",
-		];
-
 		if (date !== undefined) {
-			const dateObject = new Date(date);
-			const day: string =
-				dateObject.getDate() < 10
-					? "0" + dateObject.getDate().toString()
-					: dateObject.getDate().toString();
+			const momentObj = moment(date);
 
-			return `${day}, ${days[dateObject.getDay()]}`;
+			return momentObj.format("DD, dddd");
 		}
 
 		return "";
@@ -300,7 +287,7 @@ export class CalendarWeek extends React.Component<
 								}}
 							</SidebarHeader>
 							<DateHeader
-								labelFormat="MM.DD.YY"
+								labelFormat="YYYY/MM/DD"
 								style={{
 									height: 50,
 									fontSize: 15,

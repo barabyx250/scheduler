@@ -318,59 +318,61 @@ export const PositionsEditer: React.FC = () => {
 										</Tooltip>
 									)}
 							</Col>
-							<Col flex={"20%"}>
-								<Typography.Text>Хто підпорядковується: </Typography.Text>
-								<List
-									itemLayout="horizontal"
-									dataSource={
-										currentPosition
-											? getPositionChilds(currentPosition.pos_id)
-											: []
-									}
-									renderItem={(item) => (
-										<List.Item style={{ padding: "5px 0" }}>
-											<div
-												style={{
-													paddingLeft: "1%",
-													width: "100%",
-													color: "#e6f7ff",
-													borderRadius: "5px",
-												}}
-											>
-												<Row>
-													<Col
-														flex="70%"
-														style={{
-															backgroundColor: "#1890ff",
-														}}
-													>
-														{item.name}
-													</Col>
-													<Col style={{ paddingLeft: "1%" }}>
-														<Tooltip title="Назначити нового прямого начальника">
-															<Button
-																type="text"
-																size="small"
-																danger
-																onClick={onChangeParentPosition.bind(
-																	null,
-																	item
-																)}
-															>
-																Рухати
-															</Button>
-														</Tooltip>
-													</Col>
-												</Row>
-											</div>
-										</List.Item>
-									)}
-									style={{
-										marginLeft: "1%",
-									}}
-								/>
-								<Button onClick={onAddPosition}>Додати посаду</Button>
-							</Col>
+							{currentPosition?.pos_id !== EMPTY_POSITION_ID && (
+								<Col flex={"20%"}>
+									<Typography.Text>Хто підпорядковується: </Typography.Text>
+									<List
+										itemLayout="horizontal"
+										dataSource={
+											currentPosition
+												? getPositionChilds(currentPosition.pos_id)
+												: []
+										}
+										renderItem={(item) => (
+											<List.Item style={{ padding: "5px 0" }}>
+												<div
+													style={{
+														paddingLeft: "1%",
+														width: "100%",
+														color: "#e6f7ff",
+														borderRadius: "5px",
+													}}
+												>
+													<Row>
+														<Col
+															flex="70%"
+															style={{
+																backgroundColor: "#1890ff",
+															}}
+														>
+															{item.name}
+														</Col>
+														<Col style={{ paddingLeft: "1%" }}>
+															<Tooltip title="Назначити нового прямого начальника">
+																<Button
+																	type="text"
+																	size="small"
+																	danger
+																	onClick={onChangeParentPosition.bind(
+																		null,
+																		item
+																	)}
+																>
+																	Рухати
+																</Button>
+															</Tooltip>
+														</Col>
+													</Row>
+												</div>
+											</List.Item>
+										)}
+										style={{
+											marginLeft: "1%",
+										}}
+									/>
+									<Button onClick={onAddPosition}>Додати посаду</Button>
+								</Col>
+							)}
 						</Row>
 					</div>
 				</CSSTransition>

@@ -13,7 +13,6 @@ import { User, UserRole } from "../../../types/user";
 import { useSelector, useDispatch } from "react-redux";
 import {
 	selectAccount,
-	AccountState,
 	setUserData,
 } from "../../../redux/slicers/accountSlice";
 import { ConnectionManager } from "../../../managers/connetion/connectionManager";
@@ -25,7 +24,6 @@ import {
 
 import "./description.css";
 import { EyeTwoTone, EyeInvisibleOutlined } from "@ant-design/icons";
-import { stringify } from "querystring";
 
 const { Paragraph, Title } = Typography;
 

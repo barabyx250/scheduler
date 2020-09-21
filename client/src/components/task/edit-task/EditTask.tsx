@@ -35,7 +35,6 @@ import {
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
 import { User } from "../../../types/user";
-import Title from "antd/lib/typography/Title";
 import { CSSTransition, SwitchTransition } from "react-transition-group";
 
 import "./styles.css";

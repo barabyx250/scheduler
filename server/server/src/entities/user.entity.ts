@@ -11,6 +11,7 @@ import { User, UserRole } from "../types/user";
 import { TaskEntity } from "./task.entity";
 import { UserPositionEntity } from "./user.position.entity";
 import { NotificationEntity } from "./notification.entity";
+import { TextMessageEntity } from "./text.message.entity";
 
 @Entity()
 export class UserEntity {
@@ -50,6 +51,9 @@ export class UserEntity {
 
 	@OneToMany((type) => TaskEntity, (task) => task.userAuthor)
 	tasksByMe?: TaskEntity[];
+
+	@OneToMany((type) => TextMessageEntity, (messages) => messages.fromUser)
+	messages?: TextMessageEntity[];
 
 	@OneToMany((type) => TaskEntity, (task) => task.userExecuter)
 	myTasks?: TaskEntity[];

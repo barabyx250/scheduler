@@ -50,9 +50,13 @@ export class ConnectionManager {
 	}
 	public registerResponseHandler(
 		requestType: RequestType,
-		functionHandler: (data: any) => void
+		functionHandler: (data: any) => void,
+		checkOnUsed: boolean = true
 	) {
-		if (this.m_registeredResponseHandler.indexOf(requestType) < 0) {
+		if (
+			this.m_registeredResponseHandler.indexOf(requestType) < 0 ||
+			!checkOnUsed
+		) {
 			this.m_socket.on(requestType, functionHandler);
 			this.m_registeredResponseHandler.push(requestType);
 		}

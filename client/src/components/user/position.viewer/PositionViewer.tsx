@@ -12,30 +12,14 @@ import {
 } from "../../../types/userPosition";
 import { useSelector } from "react-redux";
 import { selectAccount } from "../../../redux/slicers/accountSlice";
-import {
-	Tree,
-	Typography,
-	Input,
-	Button,
-	Row,
-	Col,
-	List,
-	Modal,
-	message,
-	Tooltip,
-	Select,
-} from "antd";
-import { SwitchTransition, CSSTransition } from "react-transition-group";
-
-import { EMPTY_POSITION_ID } from "../../../types/constants";
-import { User } from "../../../types/user";
+import { Tree, Typography, Row, Col } from "antd";
+import { User, UserRole } from "../../../types/user";
 import { UserOutlined } from "@ant-design/icons";
 
 export const PositionViewer: React.FC = () => {
 	const [userPositionsTreeDataState, setUserPositionsTreeDataState] = useState<
 		PositionTreeData[]
 	>([]);
-	// const [treeUserData, setTreeUserData] = useState<PositionTreeData[]>([]);
 	const [users, setUsers] = useState<User[]>([]);
 	const [treeUserPosition, setTreeUserPositions] = useState<TreeUserPosition>();
 	const accState = useSelector(selectAccount);
@@ -51,7 +35,7 @@ export const PositionViewer: React.FC = () => {
 					console.log(`Error: ${data.requestCode}`);
 					return;
 				}
-				setUsers(data.data);
+				setUsers(data.data.filter((u) => u.role !== UserRole.ADMIN));
 			}
 		);
 		ConnectionManager.getInstance().registerResponseOnceHandler(

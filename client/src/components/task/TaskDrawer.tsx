@@ -1,6 +1,13 @@
 import React from "react";
-import { Drawer, Typography, Button, Modal, Input, Alert } from "antd";
-import Title from "antd/lib/typography/Title";
+import {
+	Drawer,
+	Typography,
+	Button,
+	Modal,
+	Input,
+	Progress,
+	Descriptions,
+} from "antd";
 import { User } from "../../types/user";
 import { Task, TaskStatus, TaskReport } from "../../types/task";
 import { CheckOutlined } from "@ant-design/icons";
@@ -11,7 +18,7 @@ import {
 	ResponseCode,
 } from "../../types/requests";
 import Store from "../../app/store";
-import { ACCOUNT_STORAGE_KEY } from "../../types/constants";
+import moment from "moment";
 
 const { Text, Paragraph } = Typography;
 
@@ -96,6 +103,64 @@ export class TaskDrawer extends React.Component<
 		});
 	}
 
+	getTerminPercentOfTask() {
+		if (this.props.task) {
+			const end = moment(this.props.task.endDate).unix();
+			const start = moment(this.props.task.startDate).unix();
+			const currDate = moment().unix();
+			const curr = currDate;
+			//new Date().getTime();
+			const duration = end - start;
+			const currDuration = curr - start;
+
+			if (duration < 0) {
+				return 0;
+			}
+
+			const result = (currDuration * 100) / duration;
+
+			return Math.round(result);
+		}
+		return 0;
+	}
+
+	getGradientProgressBar(): any {
+		const percent = this.getTerminPercentOfTask();
+		/**
+ * {
+									"0%": "#52c41a",
+									"20%": "#a0d911",
+									"40%": "#fadb14",
+									"60%": "#faad14",
+									"80%": "#fa541c",
+									"100%": "#f5222d",
+								}
+ */
+		if (percent < 20) {
+			return { "0%": "#52c41a", "100%": "#52c41a" };
+		} else if (percent < 40) {
+			return { "0%": "#52c41a", "100%": "#a0d911" };
+		} else if (percent < 60) {
+			return { "0%": "#52c41a", "50%": "#a0d911", "100%": "#fadb14" };
+		} else if (percent < 80) {
+			return {
+				"0%": "#52c41a",
+				"30%": "#a0d911",
+				"60%": "#fadb14",
+				"100%": "#faad14",
+			};
+		} else if (percent <= 10000000) {
+			return {
+				"0%": "#52c41a",
+				"20%": "#a0d911",
+				"40%": "#fadb14",
+				"60%": "#faad14",
+				"80%": "#fa541c",
+				"100%": "#f5222d",
+			};
+		}
+	}
+
 	render() {
 		return (
 			<Drawer
@@ -107,28 +172,45 @@ export class TaskDrawer extends React.Component<
 				width="40%"
 			>
 				<div>
-					<Title level={2}>{this.props?.task?.title}</Title>
+					{/* <Title level={2}>{this.props?.task?.title}</Title> */}
 					{this.props.task?.isPrivate && (
 						<Text>ПРИВАТНЕ ЗАВДАННЯ (БАЧИТЕ ТІЛЬКИ ВИ)</Text>
 					)}
-					<Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "далі" }}>
-						<Text strong>Опис: </Text>
-						{this.props?.task?.description}
-					</Paragraph>
-					<p />
-					<Text strong>Поставив: </Text>{" "}
-					<Text>{User.GetUserPIB(this.props?.author)}</Text>
-					<p />
-					<Text strong>Виконує: </Text>{" "}
-					<Text>{User.GetUserPIB(this.props?.executer)}</Text>
-					<p />
-					<Text strong>Терміни: </Text>
-					<Text>
-						{this.formatDate(this.props.task?.startDate)} -{" "}
-						{this.props.task !== undefined &&
-							this.formatDate(new Date(this.props.task?.endDate))}
-					</Text>
-					<p />
+					<Descriptions title={this.props?.task?.title} bordered>
+						<Descriptions.Item label="Опис" span={3}>
+							<Paragraph
+								ellipsis={{ rows: 2, expandable: true, symbol: "далі" }}
+							>
+								{this.props?.task?.description}
+							</Paragraph>
+						</Descriptions.Item>
+						<Descriptions.Item label="Поставив:" span={3}>
+							{User.GetUserPIB(this.props?.author)}
+						</Descriptions.Item>
+						<Descriptions.Item label="Виконує:" span={3}>
+							{User.GetUserPIB(this.props?.executer)}
+						</Descriptions.Item>
+						<Descriptions.Item label="Терміни:" span={3}>
+							<Text>
+								{this.formatDate(this.props.task?.startDate)} -{" "}
+								{this.props.task !== undefined &&
+									this.formatDate(new Date(this.props.task?.endDate))}
+							</Text>
+						</Descriptions.Item>
+						<Descriptions.Item label="Проходження терміна:" span={3}>
+							<Progress
+								percent={this.getTerminPercentOfTask()}
+								status="active"
+								strokeColor={{ ...this.getGradientProgressBar() }}
+							/>
+						</Descriptions.Item>
+						{this.props.task?.status === TaskStatus.COMPLITED && (
+							<Descriptions.Item label="Дата завершення:" span={3}>
+								{this.formatDate(new Date(this.props.task?.dateComplited))}
+							</Descriptions.Item>
+						)}
+					</Descriptions>
+					<br></br>
 					{Store.getState().account.id === this.props.executer?.id && (
 						<Button
 							type="primary"

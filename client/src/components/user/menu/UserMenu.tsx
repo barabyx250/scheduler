@@ -3,10 +3,13 @@ import React from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { ACCOUNT_STORAGE_KEY } from "../../../types/constants";
 import { TimersManager } from "../../../managers/timersManager";
+import Store from "../../../app/store";
+import { UserRole } from "../../../types/user";
 
 export enum UserMenuPath {
 	SETTINGS = "/user/settings",
 	FAQ = "/user/faq",
+	FEEDBACK = "/user/feedback",
 }
 
 export class UserMenu extends React.Component<{
@@ -33,6 +36,13 @@ export class UserMenu extends React.Component<{
 							<Menu.Item>
 								<Typography.Link href={UserMenuPath.FAQ}>FAQ</Typography.Link>
 							</Menu.Item>
+							{Store.getState().account.role === UserRole.USER && (
+								<Menu.Item>
+									<Typography.Link href={UserMenuPath.FEEDBACK}>
+										Написати адміністратору
+									</Typography.Link>
+								</Menu.Item>
+							)}
 							<Menu.Item danger onClick={this.onQuitClick}>
 								Вийти
 							</Menu.Item>

@@ -1,4 +1,4 @@
-import { User } from "../types/user";
+import { User, UserRole } from "../types/user";
 import { UserEntity } from "../entities/user.entity";
 import { DBUserManager } from "../managers/db_user_manager";
 import {
@@ -72,6 +72,22 @@ export class UserModel {
 		let requestCode = ResponseCode.RES_CODE_SUCCESS;
 
 		const user = await DBUserManager.GetAllUsers();
+
+		return {
+			data: user.map((u) => u.ToRequestObject()),
+			messageInfo: "",
+			requestCode: requestCode,
+		};
+	}
+
+	public static async getAllAdmins(
+		request: RequestMessage<any>
+	): Promise<ResponseMessage<User[]>> {
+		let requestCode = ResponseCode.RES_CODE_SUCCESS;
+
+		const user = (await DBUserManager.GetAllUsers()).filter(
+			(u) => u.role === UserRole.ADMIN
+		);
 
 		return {
 			data: user.map((u) => u.ToRequestObject()),
@@ -263,7 +279,9 @@ export class UserModel {
 		};
 	}
 
-	public static async removeUserPositions(request: RequestMessage<number[]>) {
+	public static async removeUserPositions(
+		request: RequestMessage<number[]>
+	): Promise<any> {
 		for (const posId of request.data) {
 			const userEntities = await DBUserManager.GetUsersByPositionId(posId);
 			const emptyPositionEntity = await DBUserManager.GetUserPositionsById(
@@ -274,7 +292,7 @@ export class UserModel {
 					userEntity.position = emptyPositionEntity;
 					await DBUserManager.UpdateUserInfo(userEntity);
 				}
-				DBUserManager.RemoveUserPosition(posId);
+				await DBUserManager.RemoveUserPosition(posId);
 			}
 		}
 

@@ -8,12 +8,14 @@ import { UserModel } from "./model/user.model";
 import { TaskModel } from "./model/task.model";
 import { Task, TaskReport } from "./types/task";
 import { logDev, LoggerInstanse } from "./logger/config";
-import { User } from "./types/user";
+import { User, UserRole } from "./types/user";
 import { DBUserManager } from "./managers/db_user_manager";
 import { UserPosition } from "./types/userPosition";
 import { NotificationModel } from "./model/notification.model";
 import { TaskFilters } from "./types/taskFilter";
 import HashStatic from "object-hash";
+import { MessageModel } from "./model/message.model";
+import { AdminChat } from "./types/adminMessage";
 
 export class RequestManager {
 	public static m_sessionSocket: Map<string, string> = new Map<
@@ -236,7 +238,10 @@ export class RequestManager {
 			}
 
 			const response = await TaskModel.updateTasks(m);
-			if (response.requestCode === ResponseCode.RES_CODE_SUCCESS) {
+			if (
+				response.requestCode === ResponseCode.RES_CODE_SUCCESS &&
+				response.data.isPrivate !== true
+			) {
 				NotificationModel.SendEditTaskNotification(
 					response.data.executerId,
 					response.data.id,
@@ -562,6 +567,103 @@ export class RequestManager {
 				}
 				const response = await UserModel.getAllUsers(m);
 				this.emit(RequestType.GET_ALL_USERS, response, socket, m);
+			}
+		);
+
+		socket.on(
+			RequestType.GET_COUNT_MESSAGES,
+			async (
+				m: RequestMessage<{ id: number; count: number; userId: number }>
+			) => {
+				if (m.session === "") {
+					socket.emit(RequestType.GET_COUNT_MESSAGES, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await MessageModel.GetMessageCountFromMessage(m);
+				this.emit(RequestType.GET_COUNT_MESSAGES, response, socket, m);
+			}
+		);
+
+		socket.on(
+			RequestType.SEND_MESSAGE_TO_ADMIN,
+			async (m: RequestMessage<AdminChat>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.SEND_MESSAGE_TO_ADMIN, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await MessageModel.CreateChatMessage(m);
+
+				const currUser = await DBUserManager.GetUserBySession(m.session);
+				if (
+					response.requestCode === ResponseCode.RES_CODE_SUCCESS &&
+					currUser !== undefined
+				) {
+					const usersAdmin = await UserModel.getAllAdmins({
+						id: m.id,
+						data: {},
+						requestCode: m.requestCode,
+						session: m.session,
+					});
+					for (const message of response.data.messages) {
+						if (currUser.role === UserRole.USER) {
+							NotificationModel.SendAdminTextMessageNotification(
+								usersAdmin.data.map((u) => u.id),
+								response.data,
+								message,
+								io
+							); //TODO CHECK. DOES NOT SENDING NOTIFICATION. WHY?
+						} else {
+							NotificationModel.SendAdminTextMessageNotification(
+								[response.data.withUser],
+								response.data,
+								message,
+								io
+							);
+						}
+					}
+				}
+
+				this.emit(RequestType.SEND_MESSAGE_TO_ADMIN, response, socket, m);
+			}
+		);
+
+		socket.on(
+			RequestType.GET_LAST_MESSAGES,
+			async (m: RequestMessage<{ userId: number; count: number }>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.GET_LAST_MESSAGES, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await MessageModel.GetLastMessages(m);
+				this.emit(RequestType.GET_LAST_MESSAGES, response, socket, m);
+			}
+		);
+
+		socket.on(
+			RequestType.GET_ALL_ADMIN_CHATS,
+			async (m: RequestMessage<any>) => {
+				if (m.session === "") {
+					socket.emit(RequestType.GET_ALL_ADMIN_CHATS, {
+						data: {},
+						messageInfo: "Session is invalid",
+						requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+					} as ResponseMessage<any>);
+					return;
+				}
+				const response = await MessageModel.GetAdminChats(m);
+				this.emit(RequestType.GET_ALL_ADMIN_CHATS, response, socket, m);
 			}
 		);
 

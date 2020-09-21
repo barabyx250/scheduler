@@ -1,4 +1,4 @@
-import { Switch, Route } from "react-router-dom";
+import { Route } from "react-router-dom";
 import React from "react";
 import { Login } from "../login/Login";
 import { AccountState, setUserData } from "../../redux/slicers/accountSlice";
@@ -26,7 +26,9 @@ export class Site extends React.Component<{}, AccountState> {
 		};
 	}
 
-	componentDidMount() {}
+	componentDidMount() {
+		Notification.requestPermission((permission) => {});
+	}
 
 	componentWillMount() {
 		const userJsonString = localStorage.getItem("user");

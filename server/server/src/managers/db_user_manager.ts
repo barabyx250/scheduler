@@ -183,7 +183,7 @@ export class DBUserManager {
 	}
 
 	public static async UpdateUserInfo(user: UserEntity) {
-		(await DBManager.get())
+		await (await DBManager.get())
 			.getConnection()
 			.getRepository(UserEntity)
 			.update(user.id, {
@@ -197,7 +197,7 @@ export class DBUserManager {
 	}
 
 	public static async RemoveUserPosition(posId: number) {
-		(await DBManager.get())
+		await (await DBManager.get())
 			.getConnection()
 			.getRepository(UserPositionEntity)
 			.delete(posId);

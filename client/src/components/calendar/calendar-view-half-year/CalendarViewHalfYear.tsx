@@ -20,7 +20,6 @@ import { User } from "../../../types/user";
 import { addMonths, addDays, addHours } from "date-fns";
 import { TaskDrawer, TaskDrawerProps } from "../../task/TaskDrawer";
 import {
-	formatDateForDisplayTasks,
 	formatDateTaskForDisplay,
 	ifTaskBetweenDates,
 } from "../../../helpers/taskHelper";
@@ -60,13 +59,11 @@ export class CalendarViewHalfYear extends React.Component<
 
 		if (date.getMonth() < 6) {
 			const startYear = new Date(date.getFullYear(), 0, 1, 0, 0, 0, 1);
-			return [startYear, addMonths(startYear, 4)];
+			return [startYear, addMonths(startYear, 5)];
 		} else {
 			const halfYear = new Date(date.getFullYear(), 6, 1, 0, 0, 0, 1);
-			return [halfYear, addMonths(halfYear, 5)];
+			return [halfYear, addMonths(halfYear, 6)];
 		}
-
-		return [addMonths(date, -3), addMonths(date, 3)];
 	}
 	ifTaskInDate(date: Date, task: Task): boolean {
 		const one = date <= task.endDate;
@@ -409,7 +406,7 @@ export class CalendarViewHalfYear extends React.Component<
 								}}
 							</SidebarHeader>
 							<DateHeader
-								labelFormat="MM"
+								labelFormat="YYYY/MM/DD"
 								style={{
 									height: 50,
 									fontSize: 15,

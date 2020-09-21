@@ -9,6 +9,7 @@
     "moduleResolution": "node",
     "outDir": "./dist",
     "strict": true,
+    "strictNullChecks": false,
     "esModuleInterop": true,
     "strictPropertyInitialization": false,
     "emitDecoratorMetadata": true,
