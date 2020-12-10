@@ -1,10 +1,14 @@
 import { Collapse, Badge, Row, Space, Typography } from "antd";
 import React from "react";
+import { UserRole } from "../../types/user";
+import { useSelector } from "react-redux";
+import { selectAccount } from "../../redux/slicers/accountSlice";
 
 const { Panel } = Collapse;
 
 const faqData = [
 	{
+		role: UserRole.USER,
 		header: "Опис пунктів головного меню",
 		text: (
 			<Collapse>
@@ -98,6 +102,52 @@ const faqData = [
 		),
 	},
 	{
+		role: UserRole.ADMIN,
+		header: "Опис пунктів головного меню",
+		text: (
+			<Collapse>
+				<Panel
+					header="Створити користувача"
+					key="6"
+					style={{ textAlign: "start" }}
+				>
+					<Typography.Text>
+						Пункт меню "Створити користувача" дозволяє створити нового
+						користувача в системі. <br></br>
+					</Typography.Text>
+				</Panel>
+				<Panel
+					header="Редагувати користувача"
+					key="7"
+					style={{ textAlign: "start" }}
+				>
+					<Typography.Text>
+						Пункт меню "Редагувати користувача" дозволяє редагувати користувача.
+						<br></br>
+					</Typography.Text>
+				</Panel>
+
+				<Panel
+					header="Редагувати посади"
+					key="8"
+					style={{ textAlign: "start" }}
+				>
+					<Typography.Text>
+						Пункт меню "Редагувати посади" дозволяє редагувати посади: добавляти
+						нові, редагувати поточні та видаляти їх.<br></br>
+						Видаляти поточні посади можливо тільки у разі, якщо ця посада не має
+						посад нижче неї. У разі видалення посади, користувачі, які
+						перебувають на неї, будуть переназначенні на "пусту" посаду.
+						Адміністратор в свою чергу повинен користувачів, які не перебувають
+						ні на якій посаді ("пуста" посада), переназначити на нову посаду в
+						пункті меню "Редагувати користувачів".
+					</Typography.Text>
+				</Panel>
+			</Collapse>
+		),
+	},
+	{
+		role: UserRole.USER,
 		header: "Як створити задачу тільки для себе?",
 		text: (
 			<Row justify="start">
@@ -123,6 +173,7 @@ const faqData = [
 		),
 	},
 	{
+		role: UserRole.USER,
 		header: "Які завдання я можу редагувати?",
 		text: (
 			<Row justify="start">
@@ -137,6 +188,7 @@ const faqData = [
 		),
 	},
 	{
+		role: UserRole.USER,
 		header: "Як створити задачу?",
 		text: (
 			<Row justify="start">
@@ -196,6 +248,7 @@ const faqData = [
 		),
 	},
 	{
+		role: UserRole.USER,
 		header: "Як редагувати задачу?",
 		text: (
 			<Row justify="start">
@@ -212,17 +265,20 @@ const faqData = [
 ];
 
 export const FAQ: React.FC = () => {
+	const accState = useSelector(selectAccount);
 	return (
 		<Row justify="center">
 			<div style={{ width: "70%", paddingTop: "1%" }}>
 				<Collapse>
-					{faqData.map(({ header, text }) => {
-						return (
-							<Panel header={header} key={header}>
-								{text}
-							</Panel>
-						);
-					})}
+					{faqData
+						.filter(({ role }) => role === accState.role)
+						.map(({ header, text }) => {
+							return (
+								<Panel header={header} key={header}>
+									{text}
+								</Panel>
+							);
+						})}
 				</Collapse>
 			</div>
 		</Row>

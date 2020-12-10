@@ -441,6 +441,37 @@ export class TaskModel {
 			requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
 		};
 	}
+
+	public static async selectMyOverdudeTasks(
+		userId: number
+	): Promise<ResponseMessage<Task[]>> {
+		const reqUser = await DBUserManager.GetUserById(userId);
+		if (reqUser) {
+			const tasks = await DBTaskManager.GetTasksByExecuterId(reqUser.id);
+
+			const result: Task[] = [];
+			const currDate = new Date();
+			tasks.forEach((task) => {
+				const taskResObj = task.ToRequestObject();
+				if (new Date(taskResObj.endDate) < currDate) {
+					result.push(taskResObj);
+				}
+			});
+
+			return {
+				data: result,
+				messageInfo: `SUCCESS`,
+				requestCode: ResponseCode.RES_CODE_SUCCESS,
+			};
+		}
+
+		return {
+			data: [],
+			messageInfo: `FAILURE`,
+			requestCode: ResponseCode.RES_CODE_INTERNAL_ERROR,
+		};
+	}
+
 	public static async getMyEditableTasks(
 		request: RequestMessage<TaskFilters>
 	): Promise<ResponseMessage<Task[]>> {

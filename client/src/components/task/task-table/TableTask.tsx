@@ -9,7 +9,16 @@ const columns = [
 	{
 		title: "Назва",
 		dataIndex: "title",
-		render: (title: string) => <link>{title}</link>,
+		render: (title: string) => (
+			<div
+				style={{
+					color: "#1890ff",
+				}}
+			>
+				{/* <link>{title}</link> */}
+				{title}
+			</div>
+		),
 	},
 	{
 		title: "Пріоритет",
@@ -43,7 +52,7 @@ const columns = [
 		dataIndex: "author",
 	},
 	{
-		title: "Хто виконав",
+		title: "Виконавець",
 		dataIndex: "executer",
 	},
 	{
@@ -82,11 +91,11 @@ const columns = [
 								title: "Звіт",
 								content: (
 									<>
-										<Link target="_blank">
+										{/* <Link target="_blank">
 											Звіт від: {User.GetUserPIB(record.taskExecuter)}
 										</Link>{" "}
 										<br></br>
-										{record.task.report.content}
+										{record.task.report.content} */}
 									</>
 								),
 							});
@@ -139,6 +148,7 @@ export const TableTask: React.FC<TableTaskProps> = (props: TableTaskProps) => {
 
 	const tableData = props.tasks.map((element) => {
 		return {
+			rowKey: element.id.toString(),
 			title: element.title,
 			author: getUserPIB(element.authorId),
 			executer: getUserPIB(element.executerId),

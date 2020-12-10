@@ -91,7 +91,7 @@ export const UserEditerPage: React.FC<Props> = () => {
 					return;
 				}
 
-				setUsers(dataMessage.data);
+				setUsers(dataMessage.data.filter((u) => u.role !== UserRole.ADMIN));
 			}
 		);
 		ConnectionManager.getInstance().emit(
@@ -196,21 +196,21 @@ export const UserEditerPage: React.FC<Props> = () => {
 		}
 	});
 
-	if (
-		Array.from(usersGroup).findIndex(
-			(value) => value[0].pos_id === accState.position.pos_id
-		) < 0
-	) {
-		usersGroup.set(accState.position, [accState]);
-	} else {
-		usersGroup.forEach((value, key) => {
-			if (key.pos_id === accState.position.pos_id) {
-				if (value.findIndex((u) => u.id === accState.id) < 0) {
-					value.push(accState);
-				}
-			}
-		});
-	}
+	// if (
+	// 	Array.from(usersGroup).findIndex(
+	// 		(value) => value[0].pos_id === accState.position.pos_id
+	// 	) < 0
+	// ) {
+	// 	usersGroup.set(accState.position, [accState]);
+	// } else {
+	// 	usersGroup.forEach((value, key) => {
+	// 		if (key.pos_id === accState.position.pos_id) {
+	// 			if (value.findIndex((u) => u.id === accState.id) < 0) {
+	// 				value.push(accState);
+	// 			}
+	// 		}
+	// 	});
+	// }
 
 	return (
 		<div

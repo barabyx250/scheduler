@@ -3,6 +3,7 @@ export enum NotificationType {
 	TASK_CREATE = "notification_task_create",
 	TASK_EDIT = "notification_task_edit",
 	ADMIN_SMS = "admin_sms",
+	OVERDUDE_TASKS = "notification_overdude_tasks",
 }
 
 export class NotificationItem {

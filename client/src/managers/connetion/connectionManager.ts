@@ -5,6 +5,7 @@ import {
 	RequestMessage,
 } from "../../types/requests";
 import { BUILD_MODE, BuildMode } from "../../types/constants";
+import Store from "../../app/store";
 
 export class ConnectionManager {
 	private static instance: ConnectionManager;
@@ -16,15 +17,24 @@ export class ConnectionManager {
 		this.m_registeredResponseHandler = new Array<RequestType>();
 	}
 
+	public sendInitRequest() {
+		const accState = Store.getState().account;
+
+		if (accState !== undefined && accState.session !== "") {
+			this.emit(RequestType.INIT_REQUEST, {}, accState.session);
+		}
+	}
+
 	public static getInstance(): ConnectionManager {
 		if (!ConnectionManager.instance) {
 			ConnectionManager.instance = new ConnectionManager(
 				io(
 					BUILD_MODE === BuildMode.RELEASE
-						? "http://10.19.20.252:8081"
+						? "http://10.19.0.132:8081"
 						: "http://localhost:8081"
 				)
 			);
+			ConnectionManager.instance.sendInitRequest();
 		}
 
 		return ConnectionManager.instance;

@@ -5,6 +5,9 @@ import { DBManager } from "./managers/db_manager";
 import { RequestManager } from "./request-manager";
 import { NotificationModel } from "./model/notification.model";
 import { UserModel } from "./model/user.model";
+import { AlarmManager } from "./types/alarm";
+import { Moment } from "moment";
+import moment from "moment";
 
 export class ServerManager {
 	public static readonly PORT: number = 8081;
@@ -22,6 +25,7 @@ export class ServerManager {
 		DBManager.get().then(() => {
 			NotificationModel.StartTaskProgressNotification(this.io);
 			NotificationModel.StartTomorrowTaskNotification(this.io);
+			NotificationModel.StartOverdudeTaskNotifications(this.io);
 			UserModel.checkInstallEmptyPosition();
 		});
 	}

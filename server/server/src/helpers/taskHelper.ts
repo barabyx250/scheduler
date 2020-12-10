@@ -97,5 +97,13 @@ export function filterTask(filter: TaskFilters, task: Task): boolean {
 		return false;
 	}
 
+	if (
+		filter.getOriginalTask !== undefined &&
+		filter.getOriginalTask &&
+		task.periodParentId !== task.id
+	) {
+		return false;
+	}
+
 	return true;
 }

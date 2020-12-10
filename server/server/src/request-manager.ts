@@ -49,6 +49,20 @@ export class RequestManager {
 			return next();
 		});
 
+		socket.on(RequestType.INIT_REQUEST, async (m: any) => {
+			
+			this.emit(
+				RequestType.INIT_REQUEST,
+				{
+					data: {},
+					messageInfo: "SUCCESS",
+					requestCode: ResponseCode.RES_CODE_SUCCESS,
+				} as ResponseMessage<any>,
+				socket,
+				m
+			);
+		});
+
 		socket.on(RequestType.LOGIN, async (m: any) => {
 			const request = m as RequestMessage<any>;
 			const response = await UserModel.userLogin(

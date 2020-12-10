@@ -122,22 +122,37 @@ export const AdminMessagesPage: React.FC = () => {
 									border: "1px solid rgba(24, 144, 255, 0.7)",
 									borderRadius: "0px 10px 10px 0px",
 									margin: "2px",
+									textOverflow: "ellipsis",
+									overflow: "hidden",
+									width: "inherit",
 								}}
 								key={item.id}
 								id={item.id.toString()}
 								onClick={onChatClick.bind(null, item)}
 							>
-								<Space direction="vertical">
+								<Space
+									direction="vertical"
+									style={{
+										width: "100%",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+									}}
+								>
 									<Typography.Text strong mark>
 										{User.GetUserPIB(users.find((u) => u.id === item.withUser))}
 									</Typography.Text>
-									<Typography.Text>
+									<div
+										style={{
+											textOverflow: "ellipsis",
+										}}
+									>
 										{
 											item.messages.reduce((prev, curr) => {
 												return prev.dateCreate < curr.dateCreate ? curr : prev;
 											}).content
 										}
-									</Typography.Text>
+									</div>
 								</Space>
 							</List.Item>
 						)}

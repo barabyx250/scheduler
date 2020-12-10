@@ -1,6 +1,7 @@
 export enum RequestType {
 	MESSAGE = "message",
 	LOGIN = "login",
+	INIT_REQUEST = "init_request",
 	CREATE_TASK = "create_task",
 	GET_MY_TASKS = "get_my_tasks",
 	GET_USERS_INFO = "get_users_info",

@@ -52,7 +52,19 @@ export const RDPNotification: React.FC = () => {
 	const openNotification = (not: NotificationItem, duration: number = 0) => {
 		const args: ArgsProps = {
 			message: not.title,
-			description: not.content,
+			description: (
+				<div>
+					{not.content}
+					<br></br>
+					{new Date(not.dateCreation).toLocaleDateString("uk", {
+						year: "numeric",
+						month: "numeric",
+						day: "numeric",
+						hour: "numeric",
+						minute: "numeric",
+					})}
+				</div>
+			),
 			duration: duration,
 			onClick: () => {
 				console.log("CLick on notification", not);
@@ -260,6 +272,29 @@ export const RDPNotification: React.FC = () => {
 		}
 	};
 
+	const onClearAllClick = () => {
+		ConnectionManager.getInstance().registerResponseOnceHandler(
+			RequestType.READ_NOTIFICATIONS,
+			(data: ResponseMessage<number[]>) => {
+				console.log("READ_NOTIFICATIONS", data);
+				if (data.requestCode === ResponseCode.RES_CODE_SUCCESS) {
+					setNotificationItems(
+						notificationItems.filter((n) => {
+							// return n.id !== data.data[0];
+							return data.data.find((id) => id === n.id) === undefined;
+						})
+					);
+				}
+			}
+		);
+
+		ConnectionManager.getInstance().emit(
+			RequestType.READ_NOTIFICATIONS,
+			notificationItems.map((not) => not.id),
+			accState.session
+		);
+	};
+
 	//console.log("TASK DRAWER STATE", taskDrawerState);
 	if (notificationItems.length === 0)
 		return (
@@ -280,6 +315,19 @@ export const RDPNotification: React.FC = () => {
 				arrow
 				overlay={
 					<Menu>
+						<Menu.Item key={"clearAll"} style={{ padding: "3px" }}>
+							<div>
+								<Button
+									style={{
+										width: "100%",
+									}}
+									danger
+									onClick={onClearAllClick}
+								>
+									Видалити всі
+								</Button>
+							</div>
+						</Menu.Item>
 						{notificationItems.map((not) => {
 							const dateCreation = new Date(not.dateCreation);
 							return (

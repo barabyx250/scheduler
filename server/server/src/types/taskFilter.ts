@@ -10,4 +10,5 @@ export interface TaskFilters {
 	};
 	status?: TaskStatus;
 	private?: boolean;
+	getOriginalTask?: boolean;
 }

@@ -26,6 +26,9 @@ import {
 import { logDev } from "../logger/config";
 import moment from "moment";
 import { AdminChat, AdminMessage } from "../types/adminMessage";
+import { AlarmManager } from "../types/alarm";
+import { TaskModel } from "./task.model";
+import { UserModel } from "./user.model";
 
 export class NotificationModel {
 	public static async GetByRecipient(
@@ -93,6 +96,81 @@ export class NotificationModel {
 				}
 			}
 		}
+	}
+
+	public static async StartOverdudeTaskNotifications(io: SocketIO.Server) {
+		var tomorrow = moment();
+		tomorrow.add(1, "d");
+		tomorrow.hours(7);
+		tomorrow.minutes(1);
+		const overdudeTasksMorningCallback = async () => {
+			const users = await DBUserManager.GetAllUsers();
+
+			for (const user of users) {
+				const response = await TaskModel.selectMyOverdudeTasks(user.id);
+
+				if (response.data.length > 0) {
+					NotificationModel.SendOverdudeTaskNotification(
+						response.data[0].executerId,
+						response.data.length,
+						io
+					);
+				}
+			}
+
+			var nextDay = moment();
+			nextDay.hours(7);
+			nextDay.minutes(1);
+			nextDay.add(1, "d");
+			AlarmManager.newAlarm(nextDay, overdudeTasksMorningCallback);
+		};
+		AlarmManager.newAlarm(tomorrow, overdudeTasksMorningCallback);
+
+		var tomorrowDinner = moment();
+		tomorrowDinner.add(1, "d");
+		tomorrowDinner.hours(15);
+		tomorrowDinner.minutes(1);
+		const overdudeTasksDinnerCallback = async () => {
+			const users = await DBUserManager.GetAllUsers();
+
+			for (const user of users) {
+				const response = await TaskModel.selectMyOverdudeTasks(user.id);
+
+				if (response.data.length > 0) {
+					NotificationModel.SendOverdudeTaskNotification(
+						response.data[0].executerId,
+						response.data.length,
+						io
+					);
+				}
+			}
+
+			var nextDay = moment();
+			nextDay.hours(15);
+			nextDay.minutes(1);
+			nextDay.add(1, "d");
+			AlarmManager.newAlarm(nextDay, overdudeTasksDinnerCallback);
+		};
+		AlarmManager.newAlarm(tomorrowDinner, overdudeTasksDinnerCallback);
+	}
+
+	public static async SendOverdudeTaskNotification(
+		recipientId: number,
+		taskCount: number,
+		io: SocketIO.Server
+	) {
+		const notItem: NotificationItem = {
+			content: `У вас ${taskCount} прострочених(на) задач`,
+			dateCreation: new Date(),
+			customData: taskCount,
+			from_id: recipientId,
+			to_id: recipientId,
+			id: 0,
+			title: "Прострочені задачи",
+			type: NotificationType.OVERDUDE_TASKS,
+			wasSend: false,
+		};
+		NotificationModel.SendNotificationToUser(recipientId, notItem, io);
 	}
 
 	public static async SendEditTaskNotification(

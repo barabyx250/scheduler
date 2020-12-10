@@ -33,6 +33,7 @@ import { FAQ } from "../faq/FAQ";
 import { PositionViewer } from "../user/position.viewer/PositionViewer";
 import { AdminMessagesPage } from "../messages/admin.messages/AdminMessagesPage";
 import { UserMessagesPage } from "../messages/user.messages/UserMessagesPage";
+import { AssignedTasks } from "../task/assignedTasks/assignedTasks";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -44,6 +45,7 @@ export enum MenuRoutes {
 	TASK_EDIT = "/menu/task/edit",
 	POSITIONS_EDIT = "/menu/positions/edit",
 	COMPLITED_TASKS = "/menu/task/selector",
+	ASSIGNED_TASKS = "/menu/task/assignedByMe",
 	USER_EDIT = "/menu/user/edit",
 	POSITION_VIEWER = "/menu/positions/view",
 	ADMIN_MESSANGER = "/menu/admin/messages",
@@ -133,7 +135,7 @@ const routes = [
 		content: "Посади",
 	},
 	{
-		key: "5",
+		key: "55",
 		path: MenuRoutes.POSITIONS_EDIT,
 		name: "PositionsEdit",
 		Component: PositionsEditer,
@@ -141,12 +143,21 @@ const routes = [
 		content: "Редагувати посади",
 	},
 	{
-		key: "5",
+		key: "56",
 		path: MenuRoutes.ADMIN_MESSANGER,
 		name: "AdminMessanger",
 		Component: AdminMessagesPage,
 		icon: <UserSwitchOutlined />,
 		content: "СМС",
+	},
+
+	{
+		key: "57",
+		path: MenuRoutes.ASSIGNED_TASKS,
+		name: "AdminMessanger",
+		Component: AssignedTasks,
+		icon: <UserSwitchOutlined />,
+		content: "Мої назначені задачі",
 	},
 ];
 
@@ -188,7 +199,8 @@ export const MainMenu: React.FC = () => {
 									path === MenuRoutes.MY_TASKS ||
 									path === MenuRoutes.SUBBORDINATES_TASK ||
 									path === MenuRoutes.TASK_EDIT ||
-									path === MenuRoutes.POSITION_VIEWER
+									path === MenuRoutes.POSITION_VIEWER ||
+									path === MenuRoutes.ASSIGNED_TASKS
 								);
 							}
 							if (accState.role === UserRole.ADMIN) {
