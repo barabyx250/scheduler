@@ -21,23 +21,23 @@
 } */
 
 .calendar-enter {
-    opacity: 0;
+  opacity: 0;
 }
 
 .calendar-exit {
-    opacity: 1;
-    transform: scale(1);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .calendar-enter-active {
-    opacity: 1;
+  opacity: 1;
 }
 
 .calendar-exit-active {
-    opacity: 0;
+  opacity: 0;
 }
 
 .calendar-enter-active,
 .calendar-exit-active {
-    transition: opacity 200ms;
+  transition: opacity 200ms;
 }

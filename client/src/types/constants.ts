@@ -12,6 +12,6 @@ export enum BuildMode {
 	RELEASE,
 }
 
-export const BUILD_MODE: BuildMode = BuildMode.RELEASE;
+export const BUILD_MODE: BuildMode = BuildMode.DEBUG;
 
 export const EMPTY_POSITION_ID: number = 500000;
