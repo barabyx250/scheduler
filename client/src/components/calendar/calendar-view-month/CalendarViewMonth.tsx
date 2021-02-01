@@ -141,26 +141,26 @@ export class CalendarViewMonth extends React.Component<
   onLeftArrowClick() {
     Store.dispatch(
       setGetTaskDateInterval({
-        from: addWeeks(this.state.start, -1),
-        to: addWeeks(this.state.end, -1),
+        from: addMonths(this.state.start, -1),
+        to: addMonths(this.state.end, -1),
       })
     );
     this.setState(({ start, end }, props: any) => ({
-      start: addWeeks(start, -1),
-      end: addWeeks(end, -1),
+      start: addMonths(start, -1),
+      end: addMonths(end, -1),
     }));
   }
 
   onRightArrowClick() {
     Store.dispatch(
       setGetTaskDateInterval({
-        from: addWeeks(this.state.start, 1),
-        to: addWeeks(this.state.end, 1),
+        from: addMonths(this.state.start, 1),
+        to: addMonths(this.state.end, 1),
       })
     );
     this.setState(({ start, end }, props: any) => ({
-      start: addWeeks(start, 1),
-      end: addWeeks(end, 1),
+      start: addMonths(start, 1),
+      end: addMonths(end, 1),
     }));
   }
 
