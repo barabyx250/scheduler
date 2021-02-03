@@ -2,6 +2,7 @@ import { Table, Button, Tag, Space, Modal, Typography } from "antd";
 import React from "react";
 import { Task, TaskStatus, TaskPriority } from "../../../types/task";
 import { User } from "../../../types/user";
+import { TaskReportModal } from "../TaskReportModal";
 
 const { Link } = Typography;
 
@@ -82,7 +83,7 @@ const columns = [
   {
     title: "Інфо",
     key: "action",
-    render: (text: any, record: TaskTableData) => {
+    render: (text: any, report: TaskTableData) => {
       return (
         <Space size="middle">
           <Button
@@ -91,11 +92,11 @@ const columns = [
                 title: "Звіт",
                 content: (
                   <>
-                    <Link target="_blank">
-                      Звіт від: {User.GetUserPIB(record.taskExecuter)}
-                    </Link>{" "}
+                    {/* <Link target="_blank">
+                      Звіт від: {User.GetUserPIB(report.taskExecuter)}
+                    </Link>{" "} */}
                     <br></br>
-                    {record.task.report.content}
+                    {report.task.report.content}
                   </>
                 ),
               });
@@ -108,7 +109,7 @@ const columns = [
             onClick={() => {
               Modal.info({
                 title: "Опис",
-                content: <>{record.task.description}</>,
+                content: <>{report.task.description}</>,
               });
             }}
             type="link"

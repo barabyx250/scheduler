@@ -1,4 +1,5 @@
 import { Button, Input } from "antd";
+import { report } from "process";
 import React, { useState, useEffect } from "react";
 
 interface TaskReportProps {
@@ -13,7 +14,6 @@ export const TaskReportModal: React.FC<TaskReportProps> = (props) => {
     target: { value },
   }) => {
     setEnteredReport(value);
-    console.log(value);
   };
 
   return (
