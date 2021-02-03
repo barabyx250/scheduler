@@ -1,6 +1,6 @@
 {
     "editor.fontLigatures": true,
     "explorer.decorations.badges": false,
-    "editor.fontFamily": "'JetBrains Mono'"
+    // "editor.fontFamily": "'JetBrains Mono'"
 
 }
