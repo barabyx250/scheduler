@@ -85,9 +85,7 @@ export const AssignedTasks: React.FC = () => {
 
   return (
     <div>
-      <Title level={2}>
-        Завершені задачі які поставили Вам і які поставили Ви
-      </Title>
+      <Title level={2}>Мої назначені задачі</Title>
       <Search
         placeholder="Введіть назву завдання для пошуку"
         onSearch={onSearch}
