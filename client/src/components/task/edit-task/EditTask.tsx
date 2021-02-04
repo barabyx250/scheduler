@@ -131,7 +131,7 @@ export const EditTask: React.FC<Props> = () => {
   ];
   const taskPeriod = [
     { value: TaskPeriod.ONCE, name: "Одноразова задача" },
-    { value: TaskPeriod.MONTH, name: "Щомісяца" },
+    { value: TaskPeriod.MONTH, name: "Щомісяця" },
     { value: TaskPeriod.HALFYEAR, name: "Кожні півроку" },
     { value: TaskPeriod.YEAR, name: "Щорічна задача" },
   ];
