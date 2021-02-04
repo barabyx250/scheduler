@@ -2,6 +2,7 @@ import { Table, Button, Tag, Space, Modal, Typography } from "antd";
 import React from "react";
 import { Task, TaskStatus, TaskPriority } from "../../../types/task";
 import { User } from "../../../types/user";
+import { TaskReportModal } from "../TaskReportModal";
 
 const { Link } = Typography;
 
@@ -91,9 +92,9 @@ const columns = [
                 title: "Звіт",
                 content: (
                   <>
-                    <Link target="_blank">
+                    {/* <Link target="_blank">
                       Звіт від: {User.GetUserPIB(record.taskExecuter)}
-                    </Link>{" "}
+                    </Link>{" "} */}
                     <br></br>
                     {record.task.report.content}
                   </>

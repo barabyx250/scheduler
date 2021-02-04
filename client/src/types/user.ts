@@ -27,7 +27,7 @@ export class User {
 	}
 
 	public static GetUserPIB(u: User | undefined): string {
-		if (u) return u.secondName + " " + u.middleName + " " + u.firstName;
+		if (u) return u.secondName + " " + u.firstName + " " + u.middleName;
 		else return "";
 	}
 }
