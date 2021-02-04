@@ -83,7 +83,7 @@ const columns = [
   {
     title: "Інфо",
     key: "action",
-    render: (text: any, report: TaskTableData) => {
+    render: (text: any, record: TaskTableData) => {
       return (
         <Space size="middle">
           <Button
@@ -93,10 +93,10 @@ const columns = [
                 content: (
                   <>
                     {/* <Link target="_blank">
-                      Звіт від: {User.GetUserPIB(report.taskExecuter)}
+                      Звіт від: {User.GetUserPIB(record.taskExecuter)}
                     </Link>{" "} */}
                     <br></br>
-                    {report.task.report.content}
+                    {record.task.report.content}
                   </>
                 ),
               });
@@ -109,7 +109,7 @@ const columns = [
             onClick={() => {
               Modal.info({
                 title: "Опис",
-                content: <>{report.task.description}</>,
+                content: <>{record.task.description}</>,
               });
             }}
             type="link"

@@ -97,7 +97,7 @@ export class TaskDrawer extends React.Component<
             startValue=""
             onOk={(_report) => {
               if (this.props.task !== undefined) {
-                let taskTest: TaskReport = {
+                let reportTaskComplite: TaskReport = {
                   id: 0,
                   content: _report,
                   dateCreation: new Date(),
@@ -105,7 +105,7 @@ export class TaskDrawer extends React.Component<
 
                 ConnectionManager.getInstance().emit(
                   RequestType.FINISH_TASK,
-                  { id: this.props.task.id, report: taskTest },
+                  { id: this.props.task.id, report: reportTaskComplite },
                   Store.getState().account.session
                 );
 
