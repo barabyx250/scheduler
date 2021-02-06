@@ -108,7 +108,6 @@ export class TaskDrawer extends React.Component<
                   { id: this.props.task.id, report: reportTaskComplite },
                   Store.getState().account.session
                 );
-
                 modal.destroy();
               }
             }}

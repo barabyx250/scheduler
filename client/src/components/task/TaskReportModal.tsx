@@ -26,7 +26,7 @@ export const TaskReportModal: React.FC<TaskReportProps> = (props) => {
           float: "right",
           marginTop: "50px",
         }}
-        disabled={enteredReport === ""}
+        disabled={enteredReport.trim() === ""}
         type={"primary"}
         onClick={() => {
           props.onOk(enteredReport);
