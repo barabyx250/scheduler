@@ -76,17 +76,25 @@ export const RDPNotification: React.FC = () => {
 					ConnectionManager.getInstance().registerResponseOnceHandler(
 						RequestType.GET_TASKS_INFO,
 						(data) => {
-							const dataMessage = data as ResponseMessage<Array<Task>>;
+							const dataMessage = data as ResponseMessage<
+								Array<Task>
+							>;
 							console.log("Data message", dataMessage);
 							if (
-								dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
+								dataMessage.requestCode ===
+								ResponseCode.RES_CODE_INTERNAL_ERROR
 							) {
-								console.log(`Error: ${dataMessage.requestCode}`);
+								console.log(
+									`Error: ${dataMessage.requestCode}`
+								);
 								return;
 							}
 
 							if (dataMessage.data.length === 0) {
-								message.error("Помилка! Мабудь, задача вже видалена.", 5);
+								message.error(
+									"Помилка! Мабудь, задача вже видалена.",
+									5
+								);
 								return;
 							}
 
@@ -95,12 +103,16 @@ export const RDPNotification: React.FC = () => {
 							ConnectionManager.getInstance().registerResponseOnceHandler(
 								RequestType.GET_USERS_INFO,
 								(data) => {
-									const dataMessage = data as ResponseMessage<Array<User>>;
+									const dataMessage = data as ResponseMessage<
+										Array<User>
+									>;
 									if (
 										dataMessage.requestCode ===
 										ResponseCode.RES_CODE_INTERNAL_ERROR
 									) {
-										console.log(`Error: ${dataMessage.requestCode}`);
+										console.log(
+											`Error: ${dataMessage.requestCode}`
+										);
 										return;
 									}
 
@@ -160,11 +172,14 @@ export const RDPNotification: React.FC = () => {
 					return;
 				}
 				setNotificationItems(
-					data.data.sort((a: NotificationItem, b: NotificationItem) => {
-						return new Date(a.dateCreation) <= new Date(b.dateCreation)
-							? 1
-							: -1;
-					})
+					data.data.sort(
+						(a: NotificationItem, b: NotificationItem) => {
+							return new Date(a.dateCreation) <=
+								new Date(b.dateCreation)
+								? 1
+								: -1;
+						}
+					)
 				);
 			}
 		);
@@ -172,8 +187,7 @@ export const RDPNotification: React.FC = () => {
 		ConnectionManager.getInstance().emit(
 			RequestType.GET_MY_NOTIFICATIONS,
 			{},
-			accState.session,
-			true
+			accState.session
 		);
 	}, []);
 
@@ -213,17 +227,23 @@ export const RDPNotification: React.FC = () => {
 				ConnectionManager.getInstance().registerResponseOnceHandler(
 					RequestType.GET_TASKS_INFO,
 					(data) => {
-						const dataMessage = data as ResponseMessage<Array<Task>>;
+						const dataMessage = data as ResponseMessage<
+							Array<Task>
+						>;
 						console.log("Data message", dataMessage);
 						if (
-							dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR
+							dataMessage.requestCode ===
+							ResponseCode.RES_CODE_INTERNAL_ERROR
 						) {
 							console.log(`Error: ${dataMessage.requestCode}`);
 							return;
 						}
 
 						if (dataMessage.data.length === 0) {
-							message.error("Помилка! Мабудь, задача вже видалена.", 5);
+							message.error(
+								"Помилка! Мабудь, задача вже видалена.",
+								5
+							);
 							return;
 						}
 
@@ -232,12 +252,16 @@ export const RDPNotification: React.FC = () => {
 						ConnectionManager.getInstance().registerResponseOnceHandler(
 							RequestType.GET_USERS_INFO,
 							(data) => {
-								const dataMessage = data as ResponseMessage<Array<User>>;
+								const dataMessage = data as ResponseMessage<
+									Array<User>
+								>;
 								if (
 									dataMessage.requestCode ===
 									ResponseCode.RES_CODE_INTERNAL_ERROR
 								) {
-									console.log(`Error: ${dataMessage.requestCode}`);
+									console.log(
+										`Error: ${dataMessage.requestCode}`
+									);
 									return;
 								}
 
@@ -281,7 +305,10 @@ export const RDPNotification: React.FC = () => {
 					setNotificationItems(
 						notificationItems.filter((n) => {
 							// return n.id !== data.data[0];
-							return data.data.find((id) => id === n.id) === undefined;
+							return (
+								data.data.find((id) => id === n.id) ===
+								undefined
+							);
 						})
 					);
 				}
@@ -300,7 +327,9 @@ export const RDPNotification: React.FC = () => {
 		return (
 			<div style={{ paddingRight: "1%" }}>
 				<TaskDrawer {...taskDrawerState}></TaskDrawer>
-				<NotificationOutlined style={{ fontSize: "30px", color: "#f0f0f0" }} />
+				<NotificationOutlined
+					style={{ fontSize: "30px", color: "#f0f0f0" }}
+				/>
 			</div>
 		);
 
@@ -363,7 +392,8 @@ export const RDPNotification: React.FC = () => {
 												<p />
 												<div
 													style={{
-														textOverflow: "ellipsis",
+														textOverflow:
+															"ellipsis",
 														overflow: "hidden",
 														whiteSpace: "normal",
 													}}
@@ -372,12 +402,17 @@ export const RDPNotification: React.FC = () => {
 												</div>
 												<Row>
 													<Col flex="50%">
-														{not.type !== NotificationType.ADMIN_SMS && (
+														{not.type !==
+															NotificationType.ADMIN_SMS && (
 															<Button
 																type="link"
-																icon={<FullscreenOutlined />}
+																icon={
+																	<FullscreenOutlined />
+																}
 																value={not.id}
-																onClick={onSaveNotificationClick}
+																onClick={
+																	onSaveNotificationClick
+																}
 															>
 																Відкрити
 															</Button>
@@ -385,15 +420,27 @@ export const RDPNotification: React.FC = () => {
 													</Col>
 
 													<Col flex="50%">
-														<div style={{ textAlign: "right" }}>
-															<Typography.Text strong>
-																{dateCreation.toLocaleString("uk")}
+														<div
+															style={{
+																textAlign:
+																	"right",
+															}}
+														>
+															<Typography.Text
+																strong
+															>
+																{dateCreation.toLocaleString(
+																	"uk"
+																)}
 															</Typography.Text>
 														</div>
 													</Col>
 												</Row>
 											</Col>
-											<Col flex="auto" style={{ paddingLeft: "1%" }}>
+											<Col
+												flex="auto"
+												style={{ paddingLeft: "1%" }}
+											>
 												<Button
 													type="ghost"
 													// shape="circle"
@@ -405,7 +452,9 @@ export const RDPNotification: React.FC = () => {
 														height: "100%",
 													}}
 													value={not.id}
-													onClick={onCloseNotification}
+													onClick={
+														onCloseNotification
+													}
 												/>
 											</Col>
 										</Row>

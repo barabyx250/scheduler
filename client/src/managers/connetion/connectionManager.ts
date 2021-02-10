@@ -44,7 +44,6 @@ export class ConnectionManager {
 		requestType: RequestType,
 		data: any,
 		session: string,
-		stackToQueue: boolean = false
 	) {
 		// if (this.m_socket.connected || stackToQueue) {
 		const request = new RequestMessage<typeof data>(session, requestType, data);

@@ -17,11 +17,15 @@ import { User, UserRole } from "../../../types/user";
 import { UserOutlined } from "@ant-design/icons";
 
 export const PositionViewer: React.FC = () => {
-	const [userPositionsTreeDataState, setUserPositionsTreeDataState] = useState<
-		PositionTreeData[]
-	>([]);
+	const [
+		userPositionsTreeDataState,
+		setUserPositionsTreeDataState,
+	] = useState<PositionTreeData[]>([]);
 	const [users, setUsers] = useState<User[]>([]);
-	const [treeUserPosition, setTreeUserPositions] = useState<TreeUserPosition>();
+	const [
+		treeUserPosition,
+		setTreeUserPositions,
+	] = useState<TreeUserPosition>();
 	const accState = useSelector(selectAccount);
 	const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 	const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
@@ -43,7 +47,10 @@ export const PositionViewer: React.FC = () => {
 			(data) => {
 				console.log(data);
 				const dataMessage = data as ResponseMessage<UserPosition[]>;
-				if (dataMessage.requestCode === ResponseCode.RES_CODE_INTERNAL_ERROR) {
+				if (
+					dataMessage.requestCode ===
+					ResponseCode.RES_CODE_INTERNAL_ERROR
+				) {
 					console.log(`Error: ${dataMessage.requestCode}`);
 					return;
 				}
@@ -79,24 +86,28 @@ export const PositionViewer: React.FC = () => {
 	let treeData: PositionTreeData[] = [];
 	console.log("IN");
 	if (treeUserPosition !== undefined && users.length > 0) {
-		treeData = treeUserPosition.mapTitleGenerateTreeData((up: UserPosition) => {
-			const filtered_users = users.filter(
-				(u) => u.position.pos_id === up.pos_id
-			);
+		treeData = treeUserPosition.mapTitleGenerateTreeData(
+			(up: UserPosition) => {
+				console.log("ksdfj", up);
+				const filtered_users = users.filter(
+					(u) => u.position.pos_id === up.pos_id
+				);
 
-			if (filtered_users.length <= 0) {
-				return "ПУСТО";
+				if (filtered_users.length <= 0) {
+					return "ПУСТО";
+				}
+				console.log("filtered users", filtered_users, "users", users);
+
+				return filtered_users.reduce<string>(
+					(previousValue: string, user: User) => {
+						if (previousValue === "") return User.GetUserPIB(user);
+
+						return previousValue + " | " + User.GetUserPIB(user);
+					},
+					""
+				);
 			}
-
-			return filtered_users.reduce<string>(
-				(previousValue: string, user: User) => {
-					if (previousValue === "") return User.GetUserPIB(user);
-
-					return previousValue + " | " + User.GetUserPIB(user);
-				},
-				""
-			);
-		});
+		);
 	}
 
 	return (
