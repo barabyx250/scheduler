@@ -95,20 +95,13 @@ export class TaskDrawer extends React.Component<
         <div>
           <TaskReportModal
             startValue=""
-            onOk={(_report) => {
+            onOk={(report) => {
               if (this.props.task !== undefined) {
-                let reportTaskComplite: TaskReport = {
-                  id: 0,
-                  content: _report,
-                  dateCreation: new Date(),
-                };
-
                 ConnectionManager.getInstance().emit(
                   RequestType.FINISH_TASK,
-                  { id: this.props.task.id, report: reportTaskComplite },
+                  { id: this.props.task.id, report: report },
                   Store.getState().account.session
                 );
-
                 modal.destroy();
               }
             }}
